@@ -9,12 +9,12 @@ require 'cached_resource/version'
 
 module CachedResource
 
-  # Switch caching off
+  # Switch cache usage off
   def self.off!
     self.config.cache_enabled = false
   end
 
-  # Switch caching on
+  # Switch cache usage on
   def self.on!
     self.config.cache_enabled = true
   end
