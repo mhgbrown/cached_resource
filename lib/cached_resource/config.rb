@@ -10,7 +10,9 @@ module CachedResource
 
     # initialize the config with caching enabled and
     # a default cache expiry of 7 days.  Also initializes
-    # the logging and caching mechanisms
+    # the logging and caching mechanisms, setting them to
+    # the Rails logger and cache if available. If unavailable,
+    # sets them to active support equivalents
     def initialize
       @cache_enabled = true
       @cache_time_to_live = DEFAULT_CACHE_TIME_TO_LIVE
