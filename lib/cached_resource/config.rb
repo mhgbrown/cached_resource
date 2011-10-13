@@ -4,7 +4,8 @@ module CachedResource
   class Config
     include Singleton
 
-    DEFAULT_CACHE_TIME_TO_LIVE = 7.days
+    # set default cache time to live to 1 week
+    DEFAULT_CACHE_TIME_TO_LIVE = 604800
 
     attr_accessor :cache_enabled, :cache_time_to_live, :logger, :cache
 
