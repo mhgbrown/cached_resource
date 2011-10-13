@@ -55,7 +55,7 @@ module CachedResource
       # log a message indicating a cached resource event
       def log(type, msg)
         c = Term::ANSIColor
-        type_string = "CachedResource #{type.to_s.classify.upcase}"
+        type_string = "Cached Resource #{type.to_s.upcase}"
 
         case type
         when :read
