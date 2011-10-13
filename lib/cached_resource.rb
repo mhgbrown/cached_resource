@@ -5,6 +5,7 @@ require 'term/ansicolor'
 require 'active_support/concern'
 require 'cached_resource/config'
 require 'cached_resource/caching'
+require 'cached_resource/version'
 
 module CachedResource
 
