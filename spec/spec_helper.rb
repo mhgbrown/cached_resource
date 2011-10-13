@@ -11,3 +11,7 @@ require 'cached_resource'
 RSpec.configure do |config|
   # nada
 end
+
+# clear cache at beginning and end of execution
+CachedResource.cache.clear
+at_exit { CachedResource.cache.clear }
