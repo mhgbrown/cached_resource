@@ -22,7 +22,7 @@ module CachedResource
         key = cache_key(arguments)
 
         begin
-          (should_reload ? find_with_reload(key, *arguments) : find_with_read_through_cache(key, *arguments))
+          (should_reload ? find_via_reload(key, *arguments) : find_via_cache(key, *arguments))
         rescue ActiveResource::ServerError, ActiveResource::ConnectionError, SocketError => e
           raise(e)
         end
@@ -32,15 +32,15 @@ module CachedResource
 
       # try to find a cached response for the given key.  If
       # no cache entry exists, send a new request.
-      def find_with_read_through_cache(key, *arguments)
+      def find_via_cache(key, *arguments)
         result = CachedResource.cache.read(key).try(:dup)
         result && log(:read, "#{key} for #{arguments.inspect}")
-        result || find_with_reload(key, *arguments)
+        result || find_via_reload(key, *arguments)
       end
 
       # re/send the request to fetch the resource. Cache the response
       # for the request.
-      def find_with_reload(key, *arguments)
+      def find_via_reload(key, *arguments)
         result = find_without_cache(*arguments)
         CachedResource.cache.write(key, result, :expires_in => CachedResource.config.cache_time_to_live)
         log(:write, "#{key} for #{arguments.inspect}")
