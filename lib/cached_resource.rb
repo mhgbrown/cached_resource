@@ -1,4 +1,4 @@
-# sourced from https://gist.github.com/947734
+# sourced from this great gist: https://gist.github.com/947734
 require 'singleton'
 require 'term/ansicolor'
 
