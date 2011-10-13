@@ -16,8 +16,9 @@ module CachedResource
       # find a resource using the cache or resend the request
       # if :reload is set to true or caching is disabled
       def find_with_cache(*arguments)
-        options = (arguments.last.is_a?(Hash) ? arguments.last : {})
-        should_reload = options.delete(:reload) || !CachedResource.config.cache_enabled
+        arguments << {} unless arguments.last.is_a?(Hash)
+        should_reload = arguments.last.delete(:reload) || !CachedResource.config.cache_enabled
+        arguments.pop if arguments.last.empty?
         key = cache_key(arguments)
 
         begin
