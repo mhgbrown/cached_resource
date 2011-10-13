@@ -18,6 +18,16 @@ module CachedResource
     self.config.cache_enabled = true
   end
 
+  # retrieve the configured logger
+  def self.logger
+    config.logger
+  end
+
+  # retrieve the configured cache store
+  def self.cache
+    config.cache
+  end
+
   # Retrieve the configuration object
   def self.config
     @@config ||= CachedResource::Config.instance

@@ -32,7 +32,7 @@ module CachedResource
       # try to find a cached response for the given key.  If
       # no cache entry exists, send a new request.
       def find_with_read_through_cache(key, *arguments)
-        result = Rails.cache.read(key).try(:dup)
+        result = CachedResource.cache.read(key).try(:dup)
         result && log(:read, "#{key} for #{arguments.inspect}")
         result || find_with_reload(key, *arguments)
       end
@@ -41,7 +41,7 @@ module CachedResource
       # for the request.
       def find_with_reload(key, *arguments)
         result = find_without_cache(*arguments)
-        Rails.cache.write(key, result, :expires_in => CachedResource.config.cache_time_to_live)
+        CachedResource.cache.write(key, result, :expires_in => CachedResource.config.cache_time_to_live)
         log(:write, "#{key} for #{arguments.inspect}")
         result
       end
@@ -63,7 +63,7 @@ module CachedResource
           type_string = c.yellow + c.bold + type_string + c.clear
         end
 
-        Rails.logger.info "#{type_string}  #{msg}"
+        CachedResource.logger.info "#{type_string}  #{msg}"
       end
 
     end
