@@ -3,13 +3,13 @@ $:.push File.expand_path("../lib", __FILE__)
 require "cached_resource/version"
 
 Gem::Specification.new do |s|
-  s.name        = "cached_resource"
+  s.name        = "Cached Resource"
   s.version     = CachedResource::VERSION
   s.authors     = ["TODO: Write your name"]
   s.email       = ["TODO: Write your email address"]
   s.homepage    = ""
-  s.summary     = %q{TODO: Write a gem summary}
-  s.description = %q{TODO: Write a gem description}
+  s.summary     = %q{Caching for ActiveResource}
+  s.description = %q{Enables request-based caching for ActiveResource}
 
   s.rubyforge_project = "cached_resource"
 
@@ -18,7 +18,8 @@ Gem::Specification.new do |s|
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
 
-  # specify any dependencies here; for example:
-  # s.add_development_dependency "rspec"
-  # s.add_runtime_dependency "rest-client"
+  s.add_dependency "active_resource"
+  s.add_dependency "term-ansicolor"
+
+  s.add_development_dependency "rspec"
 end
