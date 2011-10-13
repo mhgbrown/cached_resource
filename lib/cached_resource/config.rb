@@ -14,8 +14,9 @@ module CachedResource
     def initialize
       @cache_enabled = true
       @cache_time_to_live = DEFAULT_CACHE_TIME_TO_LIVE
-      @logger = ActiveSupport::BufferedLogger.new(STDERR)
-      @cache = ActiveSupport::Cache::MemoryStore.new
+
+      @cache = defined?(Rails.cache)  && Rails.cache || ActiveSupport::Cache::MemoryStore.new)
+      @logger = defined?(Rails.logger) && Rails.logger || ActiveSupport::BufferedLogger.new(STDERR)
     end
 
   end
