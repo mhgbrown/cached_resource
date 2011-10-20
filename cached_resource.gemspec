@@ -5,8 +5,8 @@ require "cached_resource/version"
 Gem::Specification.new do |s|
   s.name        = "Cached Resource"
   s.version     = CachedResource::VERSION
-  s.authors     = Andrew Chan
-  s.email       = email@suspi.net
+  s.authors     = "Andrew Chan"
+  s.email       = "email@suspi.net"
   s.homepage    = "http://github.com/Ahsizara/cached_resource"
   s.summary     = %q{Caching for ActiveResource}
   s.description = %q{Enables request-based caching for ActiveResource}
