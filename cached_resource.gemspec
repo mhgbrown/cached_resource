@@ -3,7 +3,7 @@ $:.push File.expand_path("../lib", __FILE__)
 require "cached_resource/version"
 
 Gem::Specification.new do |s|
-  s.name        = "Cached Resource"
+  s.name        = "cached_resource"
   s.version     = CachedResource::VERSION
   s.authors     = "Andrew Chan"
   s.email       = "email@suspi.net"
