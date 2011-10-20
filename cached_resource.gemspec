@@ -5,13 +5,11 @@ require "cached_resource/version"
 Gem::Specification.new do |s|
   s.name        = "Cached Resource"
   s.version     = CachedResource::VERSION
-  s.authors     = ["TODO: Write your name"]
-  s.email       = ["TODO: Write your email address"]
-  s.homepage    = ""
+  s.authors     = Andrew Chan
+  s.email       = email@suspi.net
+  s.homepage    = "http://github.com/Ahsizara/cached_resource"
   s.summary     = %q{Caching for ActiveResource}
   s.description = %q{Enables request-based caching for ActiveResource}
-
-  s.rubyforge_project = "cached_resource"
 
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
