@@ -1,6 +1,5 @@
 # sourced from this great gist: https://gist.github.com/947734
 require 'singleton'
-require 'term/ansicolor'
 require 'stringio'
 
 require 'active_support/concern'
