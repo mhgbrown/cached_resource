@@ -34,7 +34,7 @@ module CachedResource
       # no cache entry exists, send a new request.
       def find_via_cache(key, *arguments)
         result = CachedResource.cache.read(key).try(:dup)
-        result && log(:read, "#{key} for #{arguments.inspect}")
+        result && CachedResource.logger.info("#{CachedResource::Config::LOGGER_PREFIX} READ #{key} for #{arguments.inspect}")
         result || find_via_reload(key, *arguments)
       end
 
@@ -43,28 +43,13 @@ module CachedResource
       def find_via_reload(key, *arguments)
         result = find_without_cache(*arguments)
         CachedResource.cache.write(key, result, :expires_in => CachedResource.config.cache_time_to_live)
-        log(:write, "#{key} for #{arguments.inspect}")
+        CachedResource.logger.info("#{CachedResource::Config::LOGGER_PREFIX} WRITE #{key} for #{arguments.inspect}")
         result
       end
 
       # generate the request cache key
       def cache_key(*arguments)
         "#{name.parameterize.gsub("-", "/")}/#{arguments.join('/')}".downcase
-      end
-
-      # log a message indicating a cached resource event
-      def log(type, msg)
-        c = Term::ANSIColor
-        type_string = "Cached Resource #{type.to_s.upcase}"
-
-        case type
-        when :read
-          type_string = c.intense_black + c.bold + type_string + c.clear
-        when :write
-          type_string = c.yellow + c.bold + type_string + c.clear
-        end
-
-        CachedResource.logger.info "#{type_string}  #{msg}"
       end
 
     end

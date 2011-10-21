@@ -5,7 +5,7 @@ CachedResource helps ActiveResource by caching responses according to request pa
 	gem install cached_resource
 
 ## Configuration
-CachedResource works "out of the box" with ActiveResource.  By default, it caches responses to an `ActiveSupport::Cache::MemoryStore` and logs to an `ActiveSupport::BufferedLogger` attached to a `StringIO` object.  *In a Rails 3 environment*, CachedResource will attach itself to the Rails logger and cache.
+CachedResource works "out of the box" with ActiveResource.  By default, it caches responses to an `ActiveSupport::Cache::MemoryStore` and logs to an `ActiveSupport::BufferedLogger` attached to a `StringIO` object.  **In a Rails 3 environment**, CachedResource will attach itself to the Rails logger and cache.
 
 Turn CachedResource off.  This will cause all ActiveResource responses to be retrieved normally (i.e. via the network). 
 
@@ -34,3 +34,7 @@ Sit back and relax! If you need to reload a particular request you can do someth
 
 ## Testing
 	rake
+
+## Credit/Inspiration
+quamen and [this gist](http://gist.github.com/947734)
+latimes and [this plugin](http://github.com/latimes/cached_resource)

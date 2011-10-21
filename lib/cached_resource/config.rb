@@ -7,6 +7,9 @@ module CachedResource
     # set default cache time to live to 1 week
     DEFAULT_CACHE_TIME_TO_LIVE = 604800
 
+    # prefix for log messages
+    LOGGER_PREFIX = "[cached_resource]"
+
     attr_accessor :cache_enabled, :cache_time_to_live, :logger, :cache
 
     # initialize the config with caching enabled and
