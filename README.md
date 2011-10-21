@@ -34,3 +34,7 @@ Sit back and relax! If you need to reload a particular request you can do someth
 
 ## Testing
 	rake
+
+## Credit/Inspiration
+quamen and [this gist](http://gist.github.com/947734)
+latimes and [this plugin](http://github.com/latimes/cached_resource)
