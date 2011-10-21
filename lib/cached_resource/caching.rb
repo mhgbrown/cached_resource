@@ -34,7 +34,7 @@ module CachedResource
       # no cache entry exists, send a new request.
       def find_via_cache(key, *arguments)
         result = CachedResource.cache.read(key).try(:dup)
-        result && CachedResource.logger.info("#{CachedResource.config::LOGGER_PREFIX} READ #{key} for #{arguments.inspect}")
+        result && CachedResource.logger.info("#{CachedResource::Config::LOGGER_PREFIX} READ #{key} for #{arguments.inspect}")
         result || find_via_reload(key, *arguments)
       end
 
@@ -43,7 +43,7 @@ module CachedResource
       def find_via_reload(key, *arguments)
         result = find_without_cache(*arguments)
         CachedResource.cache.write(key, result, :expires_in => CachedResource.config.cache_time_to_live)
-        CachedResource.logger.info("#{CachedResource.config::LOGGER_PREFIX} WRITE #{key} for #{arguments.inspect}")
+        CachedResource.logger.info("#{CachedResource::Config::LOGGER_PREFIX} WRITE #{key} for #{arguments.inspect}")
         result
       end
 
