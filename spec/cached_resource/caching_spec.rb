@@ -5,6 +5,7 @@ describe CachedResource do
   before(:all) do
     class Thing < ActiveResource::Base
       self.site = "http://api.thing.com"
+      cached_resource
     end
 
     @thing = {:thing => {:id => 1, :name => "Ada"}}
@@ -18,7 +19,7 @@ describe CachedResource do
     before(:all) do
       # it's on by default, but lets call the method
       # to make sure it works
-      CachedResource.on!
+      Thing.cached_resource.on!
 
       ActiveResource::HttpMock.reset!
       ActiveResource::HttpMock.respond_to do |mock|
@@ -28,7 +29,7 @@ describe CachedResource do
 
     it "should cache a response" do
       result = Thing.find(1)
-      CachedResource.config.cache.read("thing/1").should == result
+      Thing.cached_resource.cache.read("thing/1").should == result
     end
 
     it "should read a response when the request is made again" do
@@ -44,7 +45,7 @@ describe CachedResource do
     end
 
     it "should rewrite the cache when the request is reloaded" do
-      old_result = CachedResource.config.cache.read("thing/1")
+      old_result = Thing.cached_resource.cache.read("thing/1")
 
       # change the response
       ActiveResource::HttpMock.reset!
@@ -53,7 +54,7 @@ describe CachedResource do
       end
 
       Thing.find(1, :reload => true)
-      new_result = CachedResource.config.cache.read("thing/1")
+      new_result = Thing.cached_resource.cache.read("thing/1")
       # since active resources are equal if and only if they
       # are the same object or an instance of the same class,
       # not new?, and have the same id.
@@ -64,7 +65,7 @@ describe CachedResource do
   describe "when disabled" do
 
     before(:all) do
-      CachedResource.off!
+      Thing.cached_resource.off!
 
       ActiveResource::HttpMock.reset!
       ActiveResource::HttpMock.respond_to do |mock|
@@ -74,7 +75,7 @@ describe CachedResource do
 
     it "should cache a response" do
       result = Thing.find(1)
-      CachedResource.config.cache.read("thing/1").should == result
+      Thing.cached_resource.cache.read("thing/1").should == result
     end
 
     it "should always remake the request" do
@@ -85,7 +86,7 @@ describe CachedResource do
     end
 
     it "should rewrite the cache for each request" do
-      old_result = CachedResource.config.cache.read("thing/1")
+      old_result = Thing.cached_resource.cache.read("thing/1")
 
       # change the response
       ActiveResource::HttpMock.reset!
@@ -94,7 +95,7 @@ describe CachedResource do
       end
 
       Thing.find(1)
-      new_result = CachedResource.config.cache.read("thing/1")
+      new_result = Thing.cached_resource.cache.read("thing/1")
       # since active resources are equal if and only if they
       # are the same object or an instance of the same class,
       # not new?, and have the same id.
