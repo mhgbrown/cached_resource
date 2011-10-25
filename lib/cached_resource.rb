@@ -10,12 +10,12 @@ module CachedResource
 
   # Switch cache usage off
   def self.off!
-    self.config.cache_enabled = false
+    self.config.enabled = false
   end
 
   # Switch cache usage on
   def self.on!
-    self.config.cache_enabled = true
+    self.config.enabled = true
   end
 
   # retrieve the configured logger

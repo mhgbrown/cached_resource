@@ -17,7 +17,7 @@ module CachedResource
       # if :reload is set to true or caching is disabled
       def find_with_cache(*arguments)
         arguments << {} unless arguments.last.is_a?(Hash)
-        should_reload = arguments.last.delete(:reload) || !CachedResource.config.cache_enabled
+        should_reload = arguments.last.delete(:reload) || !CachedResource.config.enabled
         arguments.pop if arguments.last.empty?
         key = cache_key(arguments)
 
@@ -42,7 +42,7 @@ module CachedResource
       # for the request.
       def find_via_reload(key, *arguments)
         result = find_without_cache(*arguments)
-        CachedResource.cache.write(key, result, :expires_in => CachedResource.config.cache_time_to_live)
+        CachedResource.cache.write(key, result, :expires_in => CachedResource.config.ttl)
         CachedResource.logger.info("#{CachedResource::Config::LOGGER_PREFIX} WRITE #{key} for #{arguments.inspect}")
         result
       end

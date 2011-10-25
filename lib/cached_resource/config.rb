@@ -5,12 +5,12 @@ module CachedResource
     include Singleton
 
     # set default cache time to live to 1 week
-    DEFAULT_CACHE_TIME_TO_LIVE = 604800
+    DEFAULT_TTL = 604800
 
     # prefix for log messages
     LOGGER_PREFIX = "[cached_resource]"
 
-    attr_accessor :cache_enabled, :cache_time_to_live, :logger, :cache
+    attr_accessor :enabled, :ttl, :logger, :cache
 
     # initialize the config with caching enabled and
     # a default cache expiry of 7 days.  Also initializes
@@ -18,8 +18,8 @@ module CachedResource
     # the Rails logger and cache if available. If unavailable,
     # sets them to active support equivalents
     def initialize
-      @cache_enabled = true
-      @cache_time_to_live = DEFAULT_CACHE_TIME_TO_LIVE
+      @enabled = true
+      @ttl = DEFAULT_TTL
 
       @cache = defined?(Rails.cache)  && Rails.cache || ActiveSupport::Cache::MemoryStore.new
       @logger = defined?(Rails.logger) && Rails.logger || ActiveSupport::BufferedLogger.new(StringIO.new)
