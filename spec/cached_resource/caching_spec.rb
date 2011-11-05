@@ -16,9 +16,10 @@ describe CachedResource do
 
   describe "when enabled" do
 
-    before(:all) do
+    before(:each) do
       # it's on by default, but lets call the method
       # to make sure it works
+      Thing.cached_resource.cache.clear
       Thing.cached_resource.on!
 
       ActiveResource::HttpMock.reset!
@@ -33,18 +34,27 @@ describe CachedResource do
     end
 
     it "should read a response when the request is made again" do
+      # make a request
       Thing.find(1)
-      # only one request should have been made by the test
-      # before this one
+      # make a request for the same thing
+      Thing.find(1)
+      # only one request should have happened
       ActiveResource::HttpMock.requests.length.should == 1
     end
 
     it "should remake a request when reloaded" do
+      # make a request
+      Thing.find(1)
+      # make a second request, but reload it
       Thing.find(1, :reload => true)
+      # we should get two requests
       ActiveResource::HttpMock.requests.length.should == 2
     end
 
     it "should rewrite the cache when the request is reloaded" do
+      # make a request
+      Thing.find(1)
+      # get the cached result of the request
       old_result = Thing.cached_resource.cache.read("thing/1")
 
       # change the response
@@ -64,7 +74,8 @@ describe CachedResource do
 
   describe "when disabled" do
 
-    before(:all) do
+    before(:each) do
+      Thing.cached_resource.cache.clear
       Thing.cached_resource.off!
 
       ActiveResource::HttpMock.reset!
@@ -80,12 +91,13 @@ describe CachedResource do
 
     it "should always remake the request" do
       Thing.find(1)
-      ActiveResource::HttpMock.requests.length.should == 2
+      ActiveResource::HttpMock.requests.length.should == 1
       Thing.find(1)
-      ActiveResource::HttpMock.requests.length.should == 3
+      ActiveResource::HttpMock.requests.length.should == 2
     end
 
     it "should rewrite the cache for each request" do
+      Thing.find(1)
       old_result = Thing.cached_resource.cache.read("thing/1")
 
       # change the response
