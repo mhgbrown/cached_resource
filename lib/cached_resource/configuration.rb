@@ -22,10 +22,10 @@ module CachedResource
     # initialize a configuration with the specified options.
     # Falls back to the global configuration if an option is not present.
     def initialize(options={})
-      @enabled = options[:enabled] || CachedResource.config.enabled
-      @ttl = options[:ttl] || CachedResource.config.ttl
-      @cache = options[:cache] || CachedResource.config.cache
-      @logger = options[:logger] || CachedResource.config.logger
+      @enabled = options[:enabled] || CachedResource.enabled
+      @ttl = options[:ttl] || CachedResource.ttl
+      @cache = options[:cache] || CachedResource.cache
+      @logger = options[:logger] || CachedResource.logger
     end
 
     # enable caching
