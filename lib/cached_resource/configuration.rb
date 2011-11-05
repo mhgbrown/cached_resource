@@ -30,12 +30,12 @@ module CachedResource
 
     # enable caching
     def on!
-      enabled = true
+      @enabled = true
     end
 
     # disable caching
     def off!
-      enabled = false
+      @enabled = false
     end
 
   end
