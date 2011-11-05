@@ -9,17 +9,17 @@ module CachedResource
 
   # Switch cache usage on
   def self.on!
-    CachedResource::Configuration.on!
+    config.on!
   end
 
   # Switch cache usage off
   def self.off!
-    CachedResource::Configuration.off!
+    config.off!
   end
 
   # Retrieve the configuration object
   def self.config
-    CachedResource::Configuration
+    @@config ||= CachedResource::Configuration.new(CachedResource::Configuration::DEFAULTS)
   end
 
 end
