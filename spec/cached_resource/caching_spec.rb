@@ -36,7 +36,7 @@ describe CachedResource do
     it "should read a response when the request is made again" do
       # make a request
       Thing.find(1)
-      # make a request for the same thing
+      # make the same request
       Thing.find(1)
       # only one request should have happened
       ActiveResource::HttpMock.requests.length.should == 1
@@ -45,7 +45,7 @@ describe CachedResource do
     it "should remake a request when reloaded" do
       # make a request
       Thing.find(1)
-      # make a second request, but reload it
+      # make the same request, but reload it
       Thing.find(1, :reload => true)
       # we should get two requests
       ActiveResource::HttpMock.requests.length.should == 2
@@ -69,6 +69,18 @@ describe CachedResource do
       # are the same object or an instance of the same class,
       # not new?, and have the same id.
       new_result.name.should_not == old_result.name
+    end
+
+    it "should remake the request when the ttl expires" do
+      # set cache time to live to 1 second
+      Thing.cached_resource.ttl = 1
+      # make a request
+      Thing.find(1)
+      # wait for the cache to expire
+      sleep(1.5)
+      # make the same request
+      Thing.find(1)
+      ActiveResource::HttpMock.requests.length.should == 2
     end
   end
 
