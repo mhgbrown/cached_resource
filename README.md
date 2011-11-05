@@ -1,4 +1,4 @@
-# CachedResource 
+# CachedResource [![Build Status](https://secure.travis-ci.org/Ahsizara/cached_resource.png)](http://travis-ci.org/Ahsizara/cached_resource) 
 CachedResource helps ActiveResource by caching responses according to request parameters.  It can help reduce the lag created by making repeated requests across the network.  
 
 ## Installation
