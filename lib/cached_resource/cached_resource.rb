@@ -18,8 +18,7 @@ module CachedResource
       # and establishing the necessary methods.
       def setup_cached_resource!(options)
         @@cached_resource = CachedResource::Configuration.new(options)
-        alias_method_chain :find, :cache
-        extend CachedResource::Caching
+        send :include, CachedResource::Caching
       end
 
     end
