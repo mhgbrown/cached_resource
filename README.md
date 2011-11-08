@@ -5,8 +5,6 @@ CachedResource is a Ruby gem whose goal is to increase the performance of intera
 	gem install cached_resource
 
 ## Configuration
-By default, CachedResource will cache responses to an `ActiveSupport::Cache::MemoryStore` and logs to an `ActiveSupport::BufferedLogger` attached to a `StringIO` object.  **In a Rails 3 environment**, CachedResource will attach itself to the Rails logger and cache. Check out the options section to see how to change these defaults and more.
-
 Enable CachedResource across all ActiveResources.
 
 	class ActiveResource::Base
@@ -22,44 +20,39 @@ Enable CachedResource for a single class.
 ### Options
 CachedResource accepts the following options:
 
-* `:cache` The cache store that CacheResource should use. Default: `ActiveSupport::Cache::MemoryStore`
+* `:cache` The cache store that CacheResource should use. Default: The `Rails.cache` if available, or an `ActiveSupport::Cache::MemoryStore`
 * `:ttl` The time in seconds until the cache should expire. Default: `604800`
-* `:logger` The logger to which CachedResource messages should be written. Default: `ActiveSupport::BufferedLogger`
+* `:logger` The logger to which CachedResource messages should be written. Default: The `Rails.logger` if available, or an `ActiveSupport::BufferedLogger`
 * `:enabled` Default: `true`
 
-You can change these options when call `cached_resource`
+You can set up CachedResource with these options.
 
 	cached_resource :cache => MyCacheStore.new, :ttl => 60, :logger => MyLogger.new, :enabled => false
 
-You can also change these options on the fly, both globally and on a class-specific basis.  Class specific options take precedence over global options.
+You can also change these options on the fly.
 
-Turn CachedResource off.  This will cause all ActiveResource responses to be retrieved normally (i.e. via the network).
+Turn CachedResource off.  This will cause all responses to be retrieved normally (i.e. via the network).
 
-	CachedResource.off!
-	MyActiveResource.off!
+	MyActiveResource.cached_resource.off!
 
 Turn CachedResource on.
 
-	CachedResource.on!
-	MyActiveResource.on!
+	MyActiveResource.cached_resource.on!
 
 Set the cache expiry time to 60 seconds.
 
-	CachedResource.ttl = 60
-	MyActiveResource.ttl = 60
+	MyActiveResource.cached_resource.ttl = 60
 
 Set a different logger.
 
-	CachedResource.logger = MyLogger.new
-	MyActiveResource.logger = MyLogger.new
+	MyActiveResource.cached_resource.logger = MyLogger.new
 
 Set a different cache store.
 
-	CachedResource.cache = MyCacheStore.new
-	MyActiveResource.cache = MyCacheStore.new
+	MyActiveResource.cached_resource.cache = MyCacheStore.new
 
 ## Usage
-Sit back and relax! If you need to reload a particular request you can do something like:
+Sit back and relax! If you need to reload a particular request you can do something like this:
 
 	MyActiveResource.find(:all, :reload => true)
 
