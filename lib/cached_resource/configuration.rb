@@ -6,12 +6,15 @@ module CachedResource
     # prefix for log messages
     LOGGER_PREFIX = "[cached_resource]"
 
+    # find and set the null file
+    FILE_NULL = test(?e, '/dev/null') ? '/dev/null' : 'NUL'
+
     # default options for cached resource
     DEFAULTS = {
       :enabled => true,
       :ttl => 604800,
       :cache => defined?(Rails.cache)  && Rails.cache || ActiveSupport::Cache::MemoryStore.new,
-      :logger => defined?(Rails.logger) && Rails.logger || ActiveSupport::BufferedLogger.new(StringIO.new)
+      :logger => defined?(Rails.logger) && Rails.logger || ActiveSupport::BufferedLogger.new(FILE_NULL)
     }
 
     # Initialize a Configuration with the given options, overriding any
