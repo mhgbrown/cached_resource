@@ -1,10 +1,10 @@
 module CachedResource
-  # The Configuration class contains global configuration options
-  # for CachedResource as well as class specific options.
-  class Configuration
+  # The Configuration class manages class specific options
+  # for cached resource.
+  class Configuration < OpenStruct
 
-    # options attributes
-    ATTRIBUTES = [:enabled, :ttl, :logger, :cache]
+    # prefix for log messages
+    LOGGER_PREFIX = "[cached_resource]"
 
     # default options for cached resource
     DEFAULTS = {
@@ -14,28 +14,24 @@ module CachedResource
       :logger => defined?(Rails.logger) && Rails.logger || ActiveSupport::BufferedLogger.new(StringIO.new)
     }
 
-    # prefix for log messages
-    LOGGER_PREFIX = "[cached_resource]"
-
-    attr_accessor *ATTRIBUTES
-
-    # initialize a configuration with the specified options.
-    # Falls back to the global configuration if an option is not present.
+    # Initialize a Configuration with the given options, overriding any
+    # defaults. The following options exist for cached resource:
+    # :enabled, default: true
+    # :ttl, default: 604800
+    # :cache, default: Rails.cache or ActiveSupport::Cache::MemoryStore.new,
+    # :logger, default: Rails.logger or ActiveSupport::BufferedLogger.new(StringIO.new)
     def initialize(options={})
-      @enabled = options[:enabled] || CachedResource.enabled
-      @ttl = options[:ttl] || CachedResource.ttl
-      @cache = options[:cache] || CachedResource.cache
-      @logger = options[:logger] || CachedResource.logger
+      super DEFAULTS.merge(options)
     end
 
     # enable caching
     def on!
-      @enabled = true
+      self.enabled = true
     end
 
     # disable caching
     def off!
-      @enabled = false
+      self.enabled = false
     end
 
   end

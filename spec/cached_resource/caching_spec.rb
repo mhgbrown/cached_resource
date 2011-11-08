@@ -14,6 +14,10 @@ describe CachedResource do
     @other_thing_json = @other_thing.to_json
   end
 
+  after(:all) do
+    Thing.cached_resource.cache.clear
+  end
+
   describe "when enabled" do
 
     before(:each) do
