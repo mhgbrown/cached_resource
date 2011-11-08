@@ -19,7 +19,7 @@ module CachedResource
     # :enabled, default: true
     # :ttl, default: 604800
     # :cache, default: Rails.cache or ActiveSupport::Cache::MemoryStore.new,
-    # :logger, default: Rails.logger or ActiveSupport::BufferedLogger.new(StringIO.new)
+    # :logger, default: Rails.logger or ActiveSupport::BufferedLogger.new(NilIO.new)
     def initialize(options={})
       super DEFAULTS.merge(options)
     end
