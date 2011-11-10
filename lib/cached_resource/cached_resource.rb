@@ -19,6 +19,7 @@ module CachedResource
         def setup_cached_resource!(options)
           @cached_resource = CachedResource::Configuration.new(options)
           send :include, CachedResource::Caching
+          @cached_resource
         end
       end
     end
