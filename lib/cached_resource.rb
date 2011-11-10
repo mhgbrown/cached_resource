@@ -9,6 +9,7 @@ require 'cached_resource/caching'
 require 'cached_resource/version'
 
 module CachedResource
+  # nada
 end
 
 # Include model methods in ActiveResource::Base

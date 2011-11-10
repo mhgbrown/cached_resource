@@ -25,7 +25,7 @@ CachedResource accepts the following options:
 * `:logger` The logger to which CachedResource messages should be written. Default: The `Rails.logger` if available, or an `ActiveSupport::BufferedLogger`
 * `:enabled` Default: `true`
 
-You can pass them in like so:
+You can set them like this:
 
 	cached_resource :cache => MyCacheStore.new, :ttl => 60, :logger => MyLogger.new, :enabled => false
 

@@ -1,7 +1,6 @@
 module CachedResource
-  # NilIO emulates a null device (like /dev/null). This file
-  # doesn't seem to belong here, but is a dependency of
-  # cached resource.
+  # NilIO emulates a null device (like /dev/null). This sort of
+  # doesn't belong here, but it's a dependency of cached resource.
   class NilIO < StringIO
 
     # Write to the null device. Disregards
