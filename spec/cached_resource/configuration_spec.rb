@@ -32,7 +32,11 @@ describe "CachedResource::Configuration" do
       end
 
       after(:each) do
+        # remove the rails constant and unbind the
+        # cache and logger from the configuration
+        # defaults
         Object.send(:remove_const, :Rails)
+        load "cached_resource/configuration.rb"
       end
 
       it "should be logging to the rails logger" do
@@ -64,4 +68,46 @@ describe "CachedResource::Configuration" do
       Foo.cached_resource.custom.should == "irrelevant"
     end
   end
+
+  describe "when multiple are initialized through cached resource" do
+    before(:each) do
+      class Foo < ActiveResource::Base
+        cached_resource
+      end
+
+      class Bar < ActiveResource::Base
+        cached_resource
+      end
+    end
+
+    after(:each) do
+      Object.send(:remove_const, :Foo)
+      Object.send(:remove_const, :Bar)
+    end
+
+    it "they should have different configuration objects" do
+      Foo.cached_resource.object_id.should_not == Bar.cached_resource.object_id
+    end
+
+    it "they should have the same cache" do
+      Foo.cached_resource.cache.should == Bar.cached_resource.cache
+      Foo.cached_resource.cache.object_id.should == Bar.cached_resource.cache.object_id
+    end
+
+    it "they should have the same ttl" do
+      Foo.cached_resource.ttl.should == Bar.cached_resource.ttl
+    end
+
+    it "they should have the same logger" do
+      Foo.cached_resource.logger.should == Bar.cached_resource.logger
+      Foo.cached_resource.logger.object_id.should == Bar.cached_resource.logger.object_id
+    end
+
+    it "they should have the same enablement" do
+      Foo.cached_resource.enabled.should == Bar.cached_resource.enabled
+    end
+
+  end
+
+
 end
