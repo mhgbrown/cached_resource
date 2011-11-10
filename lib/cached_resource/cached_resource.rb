@@ -20,8 +20,6 @@ module CachedResource
           @cached_resource = CachedResource::Configuration.new(options)
           send :include, CachedResource::Caching
         end
-
-
       end
     end
 

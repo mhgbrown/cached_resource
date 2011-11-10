@@ -52,6 +52,10 @@ describe "CachedResource::Configuration" do
       end
     end
 
+    after(:each) do
+      Object.send(:remove_const, :Foo)
+    end
+
     it "should relfect the specified options" do
       Foo.cached_resource.ttl.should == 1
       Foo.cached_resource.cache.should == "cache"

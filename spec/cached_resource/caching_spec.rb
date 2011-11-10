@@ -16,6 +16,7 @@ describe CachedResource do
 
   after(:all) do
     Thing.cached_resource.cache.clear
+    Object.send(:remove_const, :Thing)
   end
 
   describe "when enabled" do
