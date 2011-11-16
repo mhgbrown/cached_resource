@@ -1,41 +1,18 @@
-require 'singleton'
 require 'stringio'
+require 'ostruct'
 
 require 'active_support/concern'
-require 'cached_resource/config'
+require 'cached_resource/cached_resource'
+require 'cached_resource/nilio'
+require 'cached_resource/configuration'
 require 'cached_resource/caching'
 require 'cached_resource/version'
 
 module CachedResource
-
-  # Switch cache usage off
-  def self.off!
-    self.config.cache_enabled = false
-  end
-
-  # Switch cache usage on
-  def self.on!
-    self.config.cache_enabled = true
-  end
-
-  # retrieve the configured logger
-  def self.logger
-    config.logger
-  end
-
-  # retrieve the configured cache store
-  def self.cache
-    config.cache
-  end
-
-  # Retrieve the configuration object
-  def self.config
-    @@config ||= CachedResource::Config.instance
-  end
-
+  # nada
 end
 
-# Include caching in ActiveResource::Base
+# Include model methods in ActiveResource::Base
 class ActiveResource::Base
-  include CachedResource::Caching
+  include CachedResource::Model
 end

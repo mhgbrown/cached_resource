@@ -12,6 +12,5 @@ RSpec.configure do |config|
   # nada
 end
 
-# clear cache at beginning and end of execution
-CachedResource.cache.clear
-at_exit { CachedResource.cache.clear }
+# change the logger so that we log to STDOUT
+# CachedResource.logger = ActiveSupport::BufferedLogger.new(STDOUT)
