@@ -3,16 +3,14 @@ module CachedResource
   # for cached resource.
   class Configuration < OpenStruct
 
+    # default or fallback cache without rails
+    CACHE = ActiveSupport::Cache::MemoryStore.new
+
+    # default of fallback logger without rails
+    LOGGER = ActiveSupport::BufferedLogger.new(NilIO.new)
+
     # prefix for log messages
     LOGGER_PREFIX = "[cached_resource]"
-
-    # default options for cached resource
-    DEFAULTS = {
-      :enabled => true,
-      :ttl => 604800,
-      :cache => defined?(Rails.cache)  && Rails.cache || ActiveSupport::Cache::MemoryStore.new,
-      :logger => defined?(Rails.logger) && Rails.logger || ActiveSupport::BufferedLogger.new(NilIO.new)
-    }
 
     # Initialize a Configuration with the given options, overriding any
     # defaults. The following options exist for cached resource:
@@ -21,7 +19,12 @@ module CachedResource
     # :cache, default: Rails.cache or ActiveSupport::Cache::MemoryStore.new,
     # :logger, default: Rails.logger or ActiveSupport::BufferedLogger.new(NilIO.new)
     def initialize(options={})
-      super DEFAULTS.merge(options)
+      super ({
+        :enabled => true,
+        :ttl => 604800,
+        :cache => defined?(Rails.cache)  && Rails.cache || CACHE,
+        :logger => defined?(Rails.logger) && Rails.logger || LOGGER
+      }.merge(options))
     end
 
     # enable caching

@@ -5,7 +5,7 @@ CachedResource is a Ruby gem whose goal is to increase the performance of intera
 	gem install cached_resource
 
 ## Configuration
-Enable CachedResource across all ActiveResources.
+Enable CachedResource across all ActiveResources.  You could put this code in config/initializers.
 
 	class ActiveResource::Base
 		cached_resource
