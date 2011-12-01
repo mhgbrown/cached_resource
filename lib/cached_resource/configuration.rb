@@ -19,7 +19,7 @@ module CachedResource
     # :cache, default: Rails.cache or ActiveSupport::Cache::MemoryStore.new,
     # :logger, default: Rails.logger or ActiveSupport::BufferedLogger.new(NilIO.new)
     def initialize(options={})
-      super ({
+      super({
         :enabled => true,
         :ttl => 604800,
         :cache => defined?(Rails.cache)  && Rails.cache || CACHE,
