@@ -37,10 +37,10 @@ module CachedResource
       # re/send the request to fetch the resource. Cache the response
       # for the request.
       def find_via_reload(key, *arguments)
-        result = find_without_cache(*arguments)
-        cache_collection_synchronize(result, *arguments)
-        cache_write(key, result)
-        result
+        object = find_without_cache(*arguments)
+        cache_collection_synchronize(object, *arguments)
+        cache_write(key, object)
+        object
       end
 
       # if this is a pure, unadulterated "all" request
@@ -59,17 +59,17 @@ module CachedResource
       # the key is processed to make sure it is valid
       def cache_read(key)
         key = cache_key(Array(key)) unless key.is_a? String
-        result = cached_resource.cache.read(key).try(:dup)
-        result && cached_resource.logger.info("#{CachedResource::Configuration::LOGGER_PREFIX} READ #{key}")
-        result
+        object = cached_resource.cache.read(key).try(:dup)
+        object && cached_resource.logger.info("#{CachedResource::Configuration::LOGGER_PREFIX} READ #{key}")
+        object
       end
 
       # write an entry to the cache for the given key and value.
       # the key is processed to make sure it is valid
-      def cache_write(key, value)
+      def cache_write(key, object)
         key = cache_key(Array(key)) unless key.is_a? String
         cached_resource.logger.info("#{CachedResource::Configuration::LOGGER_PREFIX} WRITE #{key}")
-        cached_resource.cache.write(key, value, :expires_in => cached_resource.ttl)
+        cached_resource.cache.write(key, object, :expires_in => cached_resource.ttl)
       end
 
       # generate the request cache key
