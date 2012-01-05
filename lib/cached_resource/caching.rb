@@ -31,18 +31,43 @@ module CachedResource
       # try to find a cached response for the given key.  If
       # no cache entry exists, send a new request.
       def find_via_cache(key, *arguments)
-        result = cached_resource.cache.read(key).try(:dup)
-        result && cached_resource.logger.info("#{CachedResource::Configuration::LOGGER_PREFIX} READ #{key} for #{arguments.inspect}")
-        result || find_via_reload(key, *arguments)
+        cache_read(key) || find_via_reload(key, *arguments)
       end
 
       # re/send the request to fetch the resource. Cache the response
       # for the request.
       def find_via_reload(key, *arguments)
         result = find_without_cache(*arguments)
-        cached_resource.cache.write(key, result, :expires_in => cached_resource.ttl)
-        cached_resource.logger.info("#{CachedResource::Configuration::LOGGER_PREFIX} WRITE #{key} for #{arguments.inspect}")
+
+        # if this is a pure, unadulterated all
+        # write caches for all its members
+        # otherwise update an existing collection if possible
+        if arguments.length == 1 && arguments[0] == :all
+          result.each {|r| cache_write(r.id, r)}
+        elsif !arguments.include?(:all) && (collection = cache_read(:all))
+          collection.each_with_index {|member, i| collection[i] = result if member.id == result.id}
+          cache_write(:all, collection)
+        end
+
+        cache_write(key, result)
         result
+      end
+
+      # read a entry from the cache for the given key.
+      # the key is processed to make sure it is valid
+      def cache_read(key)
+        key = cache_key(Array(key)) unless key.is_a? String
+        result = cached_resource.cache.read(key).try(:dup)
+        result && cached_resource.logger.info("#{CachedResource::Configuration::LOGGER_PREFIX} READ #{key}")
+        result
+      end
+
+      # write an entry to the cache for the given key and value.
+      # the key is processed to make sure it is valid
+      def cache_write(key, value)
+        key = cache_key(Array(key)) unless key.is_a? String
+        cached_resource.logger.info("#{CachedResource::Configuration::LOGGER_PREFIX} WRITE #{key}")
+        cached_resource.cache.write(key, value, :expires_in => cached_resource.ttl)
       end
 
       # generate the request cache key
