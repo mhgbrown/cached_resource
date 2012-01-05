@@ -20,7 +20,6 @@ describe CachedResource do
   end
 
   describe "when enabled" do
-
     before(:each) do
       # it's on by default, but lets call the method
       # to make sure it works
@@ -87,10 +86,61 @@ describe CachedResource do
       Thing.find(1)
       ActiveResource::HttpMock.requests.length.should == 2
     end
+
+    describe "when caching a collection" do
+      before(:each) do
+        Thing.cached_resource.cache.clear
+        puts @thing_json.inspect
+        ActiveResource::HttpMock.reset!
+        ActiveResource::HttpMock.respond_to do |mock|
+          mock.get "/things/1.json", {}, @thing_json
+          mock.get "/things.json", {}, [@thing[:thing]].to_json(:root => :thing)
+        end
+
+        # make a request for all things
+        Thing.all
+      end
+
+      it "should write cache entries for its members" do
+        result = Thing.find(1)
+        # only the all request should have been made
+        ActiveResource::HttpMock.requests.length.should == 1
+        # the result should be cached with the appropriate key
+        Thing.cached_resource.cache.read("thing/1").should == result
+      end
+
+      it "should rewrite cache entries for its members when reloaded" do
+        # get the soon to be stale result so that we have a cache entry
+        old_result = Thing.find(1)
+        # change the server
+        ActiveResource::HttpMock.respond_to do |mock|
+          mock.get "/things/1.json", {}, @other_thing_json
+          mock.get "/things.json", {}, [@other_thing[:thing]].to_json(:root => :thing)
+        end
+        # reload the collection
+        Thing.all(:reload => true)
+        # get the updated result, read from the cache
+        result = Thing.find(1)
+        Thing.cached_resource.cache.read("thing/all")[0].should == result
+        Thing.cached_resource.cache.read("thing/all")[0].name.should == result.name
+      end
+
+      it "should update the collection when an individual request is reloaded" do
+        # change the server
+        ActiveResource::HttpMock.respond_to do |mock|
+          mock.get "/things/1.json", {}, @other_thing_json
+          mock.get "/things.json", {}, [@other_thing[:thing]].to_json(:root => :thing)
+        end
+
+        # reload the individual
+        result = Thing.find(1, :reload => true)
+        Thing.cached_resource.cache.read("thing/all")[0].should == result
+        Thing.cached_resource.cache.read("thing/all")[0].name.should == result.name
+      end
+    end
   end
 
   describe "when disabled" do
-
     before(:each) do
       Thing.cached_resource.cache.clear
       Thing.cached_resource.off!
