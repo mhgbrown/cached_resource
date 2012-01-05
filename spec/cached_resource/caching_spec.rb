@@ -90,7 +90,6 @@ describe CachedResource do
     describe "when caching a collection" do
       before(:each) do
         Thing.cached_resource.cache.clear
-        puts @thing_json.inspect
         ActiveResource::HttpMock.reset!
         ActiveResource::HttpMock.respond_to do |mock|
           mock.get "/things/1.json", {}, @thing_json
