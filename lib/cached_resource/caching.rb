@@ -38,19 +38,21 @@ module CachedResource
       # for the request.
       def find_via_reload(key, *arguments)
         result = find_without_cache(*arguments)
-
-        # if this is a pure, unadulterated all
-        # write caches for all its members
-        # otherwise update an existing collection if possible
-        if arguments.length == 1 && arguments[0] == :all
-          result.each {|r| cache_write(r.id, r)}
-        elsif !arguments.include?(:all) && (collection = cache_read(:all))
-          collection.each_with_index {|member, i| collection[i] = result if member.id == result.id}
-          cache_write(:all, collection)
-        end
-
+        cache_collection_synchronize(result, *arguments)
         cache_write(key, result)
         result
+      end
+
+      # if this is a pure, unadulterated "all" request
+      # write cache entries for all its members
+      # otherwise update an existing collection if possible
+      def cache_collection_synchronize(object, *arguments)
+        if arguments.length == 1 && arguments[0] == :all
+          object.each {|r| cache_write(r.id, r)}
+        elsif !arguments.include?(:all) && (collection = cache_read(:all))
+          collection.each_with_index {|member, i| collection[i] = object if member.id == object.id}
+          cache_write(:all, collection)
+        end
       end
 
       # read a entry from the cache for the given key.
