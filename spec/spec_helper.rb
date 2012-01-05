@@ -11,6 +11,3 @@ require 'cached_resource'
 RSpec.configure do |config|
   # nada
 end
-
-# change the logger so that we log to STDOUT
-# CachedResource.logger = ActiveSupport::BufferedLogger.new(STDOUT)
