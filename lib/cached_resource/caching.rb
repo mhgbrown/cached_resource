@@ -50,9 +50,9 @@ module CachedResource
         return unless cached_resource.collection_synchronize
 
         if arguments.length == 1 && arguments[0] == :all
-          object.each {|r| cache_write(cached_resource.get_resource_id(r), r)}
+          object.each {|r| cache_write(r.send(primary_key), r)}
         elsif !arguments.include?(:all) && (collection = cache_read(:all))
-          collection.each_with_index {|member, i| collection[i] = object if cached_resource.get_resource_id(member) == cached_resource.get_resource_id(object)}
+          collection.each_with_index {|member, i| collection[i] = object if member.send(primary_key) == object.send(primary_key)}
           cache_write(:all, collection)
         end
       end
