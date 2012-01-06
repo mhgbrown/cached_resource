@@ -48,9 +48,9 @@ module CachedResource
       # otherwise update an existing collection if possible
       def cache_collection_synchronize(object, *arguments)
         if arguments.length == 1 && arguments[0] == :all
-          object.each {|r| cache_write(r.id, r)}
+          object.each {|r| cache_write(cached_resource.get_resource_id(r), r)}
         elsif !arguments.include?(:all) && (collection = cache_read(:all))
-          collection.each_with_index {|member, i| collection[i] = object if member.id == object.id}
+          collection.each_with_index {|member, i| collection[i] = object if cached_resource.get_resource_id(member) == cached_resource.get_resource_id(object)}
           cache_write(:all, collection)
         end
       end
