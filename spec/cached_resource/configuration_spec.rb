@@ -17,6 +17,10 @@ describe "CachedResource::Configuration" do
       configuration.resource_id.should == :id
     end
 
+    it "should disable collection synchronization" do
+      configuration.collection_synchronize.should == false
+    end
+
     describe "outside a Rails environment" do
       it "should be logging to a buffered logger attached to a NilIO" do
         configuration.logger.class.should == ActiveSupport::BufferedLogger
@@ -55,7 +59,7 @@ describe "CachedResource::Configuration" do
   describe "when initialized through cached resource" do
     before(:each) do
       class Foo < ActiveResource::Base
-        cached_resource :ttl => 1, :cache => "cache", :logger => "logger", :enabled => false, :resource_id => :ugly,  :custom => "irrelevant"
+        cached_resource :ttl => 1, :cache => "cache", :logger => "logger", :enabled => false, :resource_id => :ugly,  :collection_synchronize => true, :custom => "irrelevant"
       end
     end
 
@@ -69,6 +73,7 @@ describe "CachedResource::Configuration" do
       Foo.cached_resource.logger.should == "logger"
       Foo.cached_resource.enabled.should == false
       Foo.cached_resource.resource_id.should == :ugly
+      Foo.cached_resource.collection_synchronize.should == true
       Foo.cached_resource.custom.should == "irrelevant"
     end
 
