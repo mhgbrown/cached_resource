@@ -58,7 +58,7 @@ module CachedResource
       end
 
       # Read a entry from the cache for the given key.
-      # Rhe key is processed to make sure it is valid.
+      # The key is processed to make sure it is valid.
       def cache_read(key)
         key = cache_key(Array(key)) unless key.is_a? String
         object = cached_resource.cache.read(key).try(:dup)
