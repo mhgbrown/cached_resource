@@ -22,17 +22,25 @@ module CachedResource
       super({
         :enabled => true,
         :ttl => 604800,
+        :resource_id => :id,
         :cache => defined?(Rails.cache)  && Rails.cache || CACHE,
         :logger => defined?(Rails.logger) && Rails.logger || LOGGER
       }.merge(options))
     end
 
-    # enable caching
+    # Get the resource id of the given object.
+    # This should be the url component that
+    # represents a specific resource.
+    def get_resource_id(object)
+      self.resource_id.to_proc.call(object)
+    end
+
+    # Enables caching.
     def on!
       self.enabled = true
     end
 
-    # disable caching
+    # Disables caching.
     def off!
       self.enabled = false
     end

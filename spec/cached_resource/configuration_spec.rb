@@ -78,7 +78,7 @@ describe "CachedResource::Configuration" do
       end
 
       it "should return an id transformed by the call" do
-        Foo.cached_resource.get_id("hello").should == "hello!"
+        Foo.cached_resource.get_resource_id("hello").should == "hello!"
       end
 
     end
