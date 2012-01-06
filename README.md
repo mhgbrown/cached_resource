@@ -46,7 +46,7 @@ Set the cache expiry time to 60 seconds.
 
 	MyActiveResource.cached_resource.ttl = 60
 
-Enable collection synchronization.
+Enable collection synchronization.  This will cause a call to `MyActiveResource.all` to also create cache entries for each of its members.  So, for example, a later call to `MyActiveResource.find(1)` will be read from the cache instead of requested from the remote service.
 
 	MyActiveResource.cached_resource.collection_synchronize = true
 
