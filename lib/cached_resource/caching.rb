@@ -11,8 +11,8 @@ module CachedResource
     end
 
     module ClassMethods
-      # find a resource using the cache or resend the request
-      # if :reload is set to true or caching is disabled
+      # Find a resource using the cache or resend the request
+      # if :reload is set to true or caching is disabled.
       def find_with_cache(*arguments)
         arguments << {} unless arguments.last.is_a?(Hash)
         should_reload = arguments.last.delete(:reload) || !cached_resource.enabled
@@ -28,13 +28,13 @@ module CachedResource
 
       private
 
-      # try to find a cached response for the given key.  If
+      # Try to find a cached response for the given key.  If
       # no cache entry exists, send a new request.
       def find_via_cache(key, *arguments)
         cache_read(key) || find_via_reload(key, *arguments)
       end
 
-      # re/send the request to fetch the resource. Cache the response
+      # Re/send the request to fetch the resource. Cache the response
       # for the request.
       def find_via_reload(key, *arguments)
         object = find_without_cache(*arguments)
@@ -43,10 +43,12 @@ module CachedResource
         object
       end
 
-      # if this is a pure, unadulterated "all" request
+      # If this is a pure, unadulterated "all" request
       # write cache entries for all its members
-      # otherwise update an existing collection if possible
+      # otherwise update an existing collection if possible.
       def cache_collection_synchronize(object, *arguments)
+        return unless cached_resource.collection_synchronize
+
         if arguments.length == 1 && arguments[0] == :all
           object.each {|r| cache_write(cached_resource.get_resource_id(r), r)}
         elsif !arguments.include?(:all) && (collection = cache_read(:all))
@@ -55,8 +57,8 @@ module CachedResource
         end
       end
 
-      # read a entry from the cache for the given key.
-      # the key is processed to make sure it is valid
+      # Read a entry from the cache for the given key.
+      # Rhe key is processed to make sure it is valid.
       def cache_read(key)
         key = cache_key(Array(key)) unless key.is_a? String
         object = cached_resource.cache.read(key).try(:dup)
@@ -64,8 +66,8 @@ module CachedResource
         object
       end
 
-      # write an entry to the cache for the given key and value.
-      # the key is processed to make sure it is valid
+      # Write an entry to the cache for the given key and value.
+      # The key is processed to make sure it is valid.
       def cache_write(key, object)
         key = cache_key(Array(key)) unless key.is_a? String
         cached_resource.logger.info("#{CachedResource::Configuration::LOGGER_PREFIX} WRITE #{key}")

@@ -87,9 +87,11 @@ describe CachedResource do
       ActiveResource::HttpMock.requests.length.should == 2
     end
 
-    describe "when caching a collection" do
+    describe "when collection synchronize is enabled" do
       before(:each) do
         Thing.cached_resource.cache.clear
+        Thing.cached_resource.collection_synchronize = true
+
         ActiveResource::HttpMock.reset!
         ActiveResource::HttpMock.respond_to do |mock|
           mock.get "/things/1.json", {}, @thing_json
@@ -135,6 +137,41 @@ describe CachedResource do
         result = Thing.find(1, :reload => true)
         Thing.cached_resource.cache.read("thing/all")[0].should == result
         Thing.cached_resource.cache.read("thing/all")[0].name.should == result.name
+      end
+    end
+
+    describe "when collection synchronize is disabled" do
+      before(:each) do
+        Thing.cached_resource.cache.clear
+        Thing.cached_resource.collection_synchronize = false
+
+        ActiveResource::HttpMock.reset!
+        ActiveResource::HttpMock.respond_to do |mock|
+          mock.get "/things/1.json", {}, @thing_json
+          mock.get "/things.json", {}, [@thing[:thing]].to_json(:root => :thing)
+        end
+
+        # make a request for all things
+        Thing.all
+      end
+
+      it "should not write cache entries for its members" do
+        result = Thing.find(1)
+        # both the all in the before each and this request should have been made
+        ActiveResource::HttpMock.requests.length.should == 2
+      end
+
+      it "should not update the collection when an individual request is reloaded" do
+        # change the server
+        ActiveResource::HttpMock.respond_to do |mock|
+          mock.get "/things/1.json", {}, @other_thing_json
+          mock.get "/things.json", {}, [@other_thing[:thing]].to_json(:root => :thing)
+        end
+
+        # reload the individual
+        result = Thing.find(1, :reload => true)
+        # the ids are the same, but the names should be different
+        Thing.cached_resource.cache.read("thing/all")[0].name.should_not == result.name
       end
     end
   end
