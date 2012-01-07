@@ -1,11 +1,20 @@
-
-
-
 # CachedResource [![Build Status](https://secure.travis-ci.org/Ahsizara/cached_resource.png)](http://travis-ci.org/Ahsizara/cached_resource)
 CachedResource is a Ruby gem whose goal is to increase the performance of interacting with web services via ActiveResource by caching responses based on request parameters.  It can help reduce the lag created by making repeated requests across a network.
 
 ## Installation
 	gem install cached_resource
+
+## Compatibility
+CachedResource has been tested with the following Ruby versions:
+
+* 1.8.7 [p249] 
+* 1.9.2 [p290] 
+* 1.9.3 [p0]
+
+CachedResource is designed to be framework agnostic, but will hook into Rails for caching and logging.  It has been tested with the following Rails versions:
+
+* 3.1
+* 3.1.3
 
 ## Configuration
 **Set up CachedResource across all ActiveResources:**
@@ -35,7 +44,7 @@ You can set them like this:
 
 You can also change them on the fly.
 
-Turn CachedResource off.  This will cause all responses to be retrieved normally (i.e. via the network).
+Turn CachedResource off.  This will cause all responses to be retrieved normally (i.e. via the network). All responses will still be cached.
 
 	MyActiveResource.cached_resource.off!
 
