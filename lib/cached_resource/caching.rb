@@ -19,7 +19,7 @@ module CachedResource
         arguments.pop if arguments.last.empty?
         key = cache_key(arguments)
 
-        (should_reload ? find_via_reload(key, *arguments) : find_via_cache(key, *arguments))
+        should_reload ? find_via_reload(key, *arguments) : find_via_cache(key, *arguments)
       end
 
       private
