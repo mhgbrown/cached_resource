@@ -19,11 +19,7 @@ module CachedResource
         arguments.pop if arguments.last.empty?
         key = cache_key(arguments)
 
-        begin
-          (should_reload ? find_via_reload(key, *arguments) : find_via_cache(key, *arguments))
-        rescue ActiveResource::ServerError, ActiveResource::ConnectionError, SocketError => e
-          raise(e)
-        end
+        (should_reload ? find_via_reload(key, *arguments) : find_via_cache(key, *arguments))
       end
 
       private
