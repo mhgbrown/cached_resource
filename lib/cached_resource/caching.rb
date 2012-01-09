@@ -38,7 +38,7 @@ module CachedResource
       # for the request.
       def find_via_reload(key, *arguments)
         object = find_without_cache(*arguments)
-        cache_collection_synchronize(object, *arguments)
+        cache_collection_synchronize(object, *arguments) if cached_resource.collection_synchronize
         cache_write(key, object)
         object
       end
@@ -47,8 +47,6 @@ module CachedResource
       # write cache entries for all its members
       # otherwise update an existing collection if possible.
       def cache_collection_synchronize(object, *arguments)
-        return unless cached_resource.collection_synchronize
-
         if arguments.length == 1 && arguments[0] == :all
           object.each {|r| cache_write(r.send(primary_key), r)}
         elsif !arguments.include?(:all) && (collection = cache_read(:all))
