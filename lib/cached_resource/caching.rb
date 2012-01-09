@@ -64,11 +64,12 @@ module CachedResource
       # The key is processed to make sure it is valid.
       def cache_write(key, object)
         key = cache_key(Array(key)) unless key.is_a? String
-        cached_resource.logger.info("#{CachedResource::Configuration::LOGGER_PREFIX} WRITE #{key}")
-        cached_resource.cache.write(key, object, :expires_in => cached_resource.ttl)
+        result = cached_resource.cache.write(key, object, :expires_in => cached_resource.ttl)
+        result && cached_resource.logger.info("#{CachedResource::Configuration::LOGGER_PREFIX} WRITE #{key}")
+        result
       end
 
-      # generate the request cache key
+      # Generate the request cache key.
       def cache_key(*arguments)
         "#{name.parameterize.gsub("-", "/")}/#{arguments.join('/')}".downcase
       end
