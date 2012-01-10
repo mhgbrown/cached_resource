@@ -43,12 +43,37 @@ module CachedResource
       # write cache entries for all its members
       # otherwise update an existing collection if possible.
       def cache_collection_synchronize(object, *arguments)
-        if arguments.length == 1 && arguments[0] == :all
-          object.each {|r| cache_write(r.send(primary_key), r)}
-        elsif !arguments.include?(:all) && (collection = cache_read(:all))
-          collection.each_with_index {|member, i| collection[i] = object if member.send(primary_key) == object.send(primary_key)}
-          cache_write(:all, collection)
+        if object.is_a? Array
+          update_singles_cache(object)
+          update_collection_cache(object) unless is_collection?(*arguments)
+        else
+          update_collection_cache(object)
         end
+      end
+
+      # Update the cache of singles with an array of updates.
+      def update_singles_cache(updates)
+        updates = Array(updates)
+        updates.each {|object| cache_write(object.send(primary_key), object)}
+      end
+
+      # Update the "mother" collection with an array of updates.
+      def update_collection_cache(updates)
+        updates = Array(updates)
+        collection = cache_read(:all)
+
+        if collection && !updates.empty?
+          store = RUBY_VERSION.to_f < 1.9 ? ActiveSupport::OrderedHash.new : {}
+          index = collection.inject(store) {|hash, object| hash[object.send(primary_key)] = object; hash}
+          updates.each {|object| index[object.send(primary_key)] = object}
+          cache_write(:all, index.values)
+        end
+      end
+
+      # Determine if the given arguments represent
+      # the entire collection of objects.
+      def is_collection?(*arguments)
+        arguments.length == 1 && arguments[0] == :all
       end
 
       # Read a entry from the cache for the given key.

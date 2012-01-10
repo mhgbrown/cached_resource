@@ -138,6 +138,26 @@ describe CachedResource do
         Thing.cached_resource.cache.read("thing/all")[0].should == result
         Thing.cached_resource.cache.read("thing/all")[0].name.should == result.name
       end
+
+      it "should update both the collection and the member cache entries when a subset of the collection is retrieved" do
+        # create cache entries for
+        old_individual = Thing.find(1)
+        old_collection = Thing.all
+
+        # change the server
+        ActiveResource::HttpMock.respond_to do |mock|
+          mock.get "/things.json?name=Ari", {}, [@other_thing[:thing]].to_json(:root => :thing)
+        end
+
+        # make a request for a subset of the "mother" collection
+        result = Thing.find(:all, :params => {:name => "Ari"})
+        # the collection should be updated to reflect the server change
+        Thing.cached_resource.cache.read("thing/all")[0].should == result[0]
+        Thing.cached_resource.cache.read("thing/all")[0].name.should == result[0].name
+        # the individual should be updated to reflect the server change
+        Thing.cached_resource.cache.read("thing/1").should == result[0]
+        Thing.cached_resource.cache.read("thing/1").name.should == result[0].name
+      end
     end
 
     describe "when collection synchronize is disabled" do
