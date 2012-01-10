@@ -24,6 +24,7 @@ module CachedResource
         :enabled => true,
         :ttl => 604800,
         :collection_synchronize => false,
+        :collection_arguments => [:all],
         :cache => defined?(Rails.cache)  && Rails.cache || CACHE,
         :logger => defined?(Rails.logger) && Rails.logger || LOGGER
       }.merge(options))

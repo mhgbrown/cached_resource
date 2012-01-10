@@ -61,20 +61,20 @@ module CachedResource
       # Update the "mother" collection with an array of updates.
       def update_collection_cache(updates)
         updates = Array(updates)
-        collection = cache_read(:all)
+        collection = cache_read(cached_resource.collection_arguments)
 
         if collection && !updates.empty?
           store = RUBY_VERSION.to_f < 1.9 ? ActiveSupport::OrderedHash.new : {}
           index = collection.inject(store) {|hash, object| hash[object.send(primary_key)] = object; hash}
           updates.each {|object| index[object.send(primary_key)] = object}
-          cache_write(:all, index.values)
+          cache_write(cached_resource.collection_arguments, index.values)
         end
       end
 
       # Determine if the given arguments represent
       # the entire collection of objects.
       def is_collection?(*arguments)
-        arguments.length == 1 && arguments[0] == :all
+        arguments == cached_resource.collection_arguments
       end
 
       # Read a entry from the cache for the given key.

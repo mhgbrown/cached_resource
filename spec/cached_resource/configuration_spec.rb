@@ -17,6 +17,10 @@ describe "CachedResource::Configuration" do
       configuration.collection_synchronize.should == false
     end
 
+    it "should default to :all for collection arguments" do
+      configuration.collection_arguments.should == [:all]
+    end
+
     describe "outside a Rails environment" do
       it "should be logging to a buffered logger attached to a NilIO" do
         configuration.logger.class.should == ActiveSupport::BufferedLogger
@@ -55,7 +59,13 @@ describe "CachedResource::Configuration" do
   describe "when initialized through cached resource" do
     before(:each) do
       class Foo < ActiveResource::Base
-        cached_resource :ttl => 1, :cache => "cache", :logger => "logger", :enabled => false,  :collection_synchronize => true, :custom => "irrelevant"
+        cached_resource :ttl => 1,
+                        :cache => "cache",
+                        :logger => "logger",
+                        :enabled => false,
+                        :collection_synchronize => true,
+                        :collection_arguments => [:every],
+                        :custom => "irrelevant"
       end
     end
 
@@ -69,6 +79,7 @@ describe "CachedResource::Configuration" do
       Foo.cached_resource.logger.should == "logger"
       Foo.cached_resource.enabled.should == false
       Foo.cached_resource.collection_synchronize.should == true
+      Foo.cached_resource.collection_arguments.should == [:every]
       Foo.cached_resource.custom.should == "irrelevant"
     end
   end
