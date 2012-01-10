@@ -10,6 +10,9 @@ describe CachedResource do
 
     @thing = {:thing => {:id => 1, :name => "Ada"}}
     @other_thing = {:thing => {:id => 1, :name => "Ari"}}
+    @thing2 = {:thing => {:id => 2, :name => "Joe"}}
+    @other_thing2 = {:thing => {:id => 2, :name => "Jeb"}}
+    @thing3 = {:thing => {:id => 3, :name => "Stu"}}
     @thing_json = @thing.to_json
     @other_thing_json = @other_thing.to_json
   end
@@ -140,7 +143,7 @@ describe CachedResource do
       end
 
       it "should update both the collection and the member cache entries when a subset of the collection is retrieved" do
-        # create cache entries for
+        # create cache entries for 1 and all
         old_individual = Thing.find(1)
         old_collection = Thing.all
 
@@ -157,6 +160,32 @@ describe CachedResource do
         # the individual should be updated to reflect the server change
         Thing.cached_resource.cache.read("thing/1").should == result[0]
         Thing.cached_resource.cache.read("thing/1").name.should == result[0].name
+      end
+
+      it "should maintain the order of the collection when updating it" do
+        # change the server to return a longer collection
+        ActiveResource::HttpMock.respond_to do |mock|
+          mock.get "/things.json", {}, [@thing[:thing], @thing3[:thing], @thing2[:thing]].to_json(:root => :thing)
+        end
+
+        # create cache entry for the collection (we reload because in before block we make an all request)
+        old_collection = Thing.all(:reload => true)
+
+        # change the server's response for the thing with id 2
+        ActiveResource::HttpMock.respond_to do |mock|
+          mock.get "/things/2.json", {}, @other_thing2.to_json(:root => :thing)
+        end
+
+        # get thing 2, thereby updating the collection
+        result = Thing.find(2, :reload => true)
+        # get the updated collection from the cache
+        updated_collection = Thing.all
+        # name should have changed to "Jeb"
+        updated_collection[2].name.should == result.name
+        # the updated collection should have the elements in the same order
+        old_collection.each_with_index do |thing, i|
+          updated_collection[i].id.should == thing.id
+        end
       end
     end
 
