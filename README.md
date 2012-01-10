@@ -34,7 +34,8 @@ CachedResource accepts the following options:
 
 * `:enabled` Default: `true`
 * `:ttl` The time in seconds until the cache should expire. Default: `604800`
-* `:collection_synchronize` Use collections to generate cache entries for individuals.  Update existing cached collections with new individuals.  Default: `false`
+* `:collection_synchronize` Use collections to generate cache entries for individuals.  Update the existing cached principal collection with new individuals.  Default: `false`
+* `:collection_arguments` The arguments that identify the principal collection request. Default: `[:all]`
 * `:logger` The logger to which CachedResource messages should be written. Default: The `Rails.logger` if available, or an `ActiveSupport::BufferedLogger`
 * `:cache` The cache store that CacheResource should use. Default: The `Rails.cache` if available, or an `ActiveSupport::Cache::MemoryStore`
 
@@ -59,6 +60,10 @@ Set the cache expiry time to 60 seconds.
 Enable collection synchronization.  This will cause a call to `MyActiveResource.all` to also create cache entries for each of its members.  So, for example, a later call to `MyActiveResource.find(1)` will be read from the cache instead of requested from the remote service.
 
 	MyActiveResource.cached_resource.collection_synchronize = true
+
+Change the arguments that identify the principal collection request.  If for some reason you are concerned with a collection that is retrieved at a non-standard URL, you may specify the Ruby arguments that produce that URL.  When `collection_synchronize` is `true`, the collection returned from a request that matches these arguments will be cached and later updated when one of its members is retrieved.
+
+	MyActiveResource.cached_resource.collection_arguments = [:all, :params => {:name => "Bob"}]
 
 Set a different logger.
 
