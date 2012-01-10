@@ -45,6 +45,7 @@ module CachedResource
       def cache_collection_synchronize(object, *arguments)
         if object.is_a? Array
           update_singles_cache(object)
+          # update the collection only if this is a subset of it
           update_collection_cache(object) unless is_collection?(*arguments)
         else
           update_collection_cache(object)
@@ -81,7 +82,7 @@ module CachedResource
       def cache_read(key)
         key = cache_key(Array(key)) unless key.is_a? String
         object = cached_resource.cache.read(key).try(:dup)
-        object && cached_resource.logger.info("#{CachedResource::Configuration::LOGGER_PREFIX} READ #{key}")
+        object && cached_resource.logger.info("#{CachedResource::Configuration::LOGGER_PREFIX} READ #{object.class}:#{object.send(primary_key)} #{key}")
         object
       end
 
@@ -90,7 +91,7 @@ module CachedResource
       def cache_write(key, object)
         key = cache_key(Array(key)) unless key.is_a? String
         result = cached_resource.cache.write(key, object, :expires_in => cached_resource.ttl)
-        result && cached_resource.logger.info("#{CachedResource::Configuration::LOGGER_PREFIX} WRITE #{key}")
+        result && cached_resource.logger.info("#{CachedResource::Configuration::LOGGER_PREFIX} WRITE #{object.class}:#{object.send(primary_key)} #{key}")
         result
       end
 
