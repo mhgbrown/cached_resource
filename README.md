@@ -11,7 +11,7 @@ CachedResource has been tested with the following Ruby versions:
 * 1.9.2 [p290] 
 * 1.9.3 [p0]
 
-CachedResource is designed to be framework agnostic, but will hook into Rails for caching and logging.  It has been tested with the following Rails versions:
+CachedResource is designed to be framework agnostic, but will hook into Rails for caching and logging.  If there is a `Rails.cache` and/or a `Rails.logger`, then it _should_ be OK.  It is known to work with the following Rails versions:
 
 * 3.1.3
 
