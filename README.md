@@ -13,7 +13,6 @@ CachedResource has been tested with the following Ruby versions:
 
 CachedResource is designed to be framework agnostic, but will hook into Rails for caching and logging.  It has been tested with the following Rails versions:
 
-* 3.1
 * 3.1.3
 
 ## Configuration
