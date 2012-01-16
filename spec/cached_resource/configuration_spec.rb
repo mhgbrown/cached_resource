@@ -124,4 +124,32 @@ describe "CachedResource::Configuration" do
 
   end
 
+  describe "when cached resource is inherited" do
+    before(:each) do
+      class Bar < ActiveResource::Base
+        cached_resource :ttl => 1,
+                        :cache => "cache",
+                        :logger => "logger",
+                        :enabled => false,
+                        :collection_synchronize => true,
+                        :collection_arguments => [:every],
+                        :custom => "irrelevant"
+      end
+
+      class Foo < Bar
+        cached_resource
+      end
+    end
+
+    after(:each) do
+      Object.send(:remove_const, :Foo)
+      Object.send(:remove_const, :Bar)
+    end
+
+    it "it should make sure each subclass has the same configuration" do
+      Bar.cached_resource.object_id.should == Foo.cached_resource.object_id
+    end
+
+  end
+
 end

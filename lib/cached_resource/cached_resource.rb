@@ -24,5 +24,15 @@ module CachedResource
       end
     end
 
+    module ClassMethods
+      # Copy a superclass's cached resource configuration if
+      # it's defined.  Unfortunately, this means that any subclass
+      # that wants an independent configuration will need to execute:
+      # self.cached_resource = CachedResource::Configuration.new(options={})
+      def inherited(child)
+        child.cached_resource = self.cached_resource if defined?(@cached_resource)
+      end
+    end
+
   end
 end
