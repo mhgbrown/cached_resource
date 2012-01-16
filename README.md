@@ -7,8 +7,8 @@ CachedResource is a Ruby gem whose goal is to increase the performance of intera
 ## Compatibility
 CachedResource has been tested with the following Ruby versions:
 
-* 1.8.7 [p249] 
-* 1.9.2 [p290] 
+* 1.8.7 [p249]
+* 1.9.2 [p290]
 * 1.9.3 [p0]
 
 CachedResource is designed to be framework agnostic, but will hook into Rails for caching and logging.  If there is a `Rails.cache` and/or a `Rails.logger`, then it _should_ be OK.  It is known to work with the following Rails versions:
@@ -72,6 +72,17 @@ Set a different cache store.
 
 	MyActiveResource.cached_resource.cache = MyCacheStore.new
 
+### Caveats
+If you set up CachedResource across all ActiveResources or any subclass of ActiveResource that will be inherited by other classes and you want some of those others to have independent CachedResource configurations, then check out the example below:
+
+	class ActiveResource::Base
+		cached_resource
+	end
+
+	class MyActiveResource < ActiveResource::Base
+		self.cached_resource = CachedResource::Configuration.new(:collection_synchronize => true)
+	end
+
 ## Usage
 Sit back and relax! If you need to reload a particular request you can pass `:reload => true` into the options hash like this:
 
@@ -88,4 +99,6 @@ Sit back and relax! If you need to reload a particular request you can pass `:re
 Feedback is greatly appreciated! Check out this project's [issue tracker](https://github.com/Ahsizara/cached_resource/issues) if you've got anything to say.
 
 ## Future Work
+This may change at any time.
+
 * Consider checksums to improve the determination of freshness/changédness

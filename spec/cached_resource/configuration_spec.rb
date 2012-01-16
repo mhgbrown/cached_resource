@@ -74,16 +74,18 @@ describe "CachedResource::Configuration" do
     end
 
     it "should relfect the specified options" do
-      Foo.cached_resource.ttl.should == 1
-      Foo.cached_resource.cache.should == "cache"
-      Foo.cached_resource.logger.should == "logger"
-      Foo.cached_resource.enabled.should == false
-      Foo.cached_resource.collection_synchronize.should == true
-      Foo.cached_resource.collection_arguments.should == [:every]
-      Foo.cached_resource.custom.should == "irrelevant"
+      cr = Foo.cached_resource
+      cr.ttl.should == 1
+      cr.cache.should == "cache"
+      cr.logger.should == "logger"
+      cr.enabled.should == false
+      cr.collection_synchronize.should == true
+      cr.collection_arguments.should == [:every]
+      cr.custom.should == "irrelevant"
     end
   end
 
+  # re-evaluate
   describe "when multiple are initialized through cached resource" do
     before(:each) do
       class Foo < ActiveResource::Base
@@ -137,7 +139,6 @@ describe "CachedResource::Configuration" do
       end
 
       class Foo < Bar
-        cached_resource
       end
     end
 
@@ -148,6 +149,46 @@ describe "CachedResource::Configuration" do
 
     it "it should make sure each subclass has the same configuration" do
       Bar.cached_resource.object_id.should == Foo.cached_resource.object_id
+    end
+
+  end
+
+  describe "when cached resource is inherited and then overriden" do
+    before(:each) do
+      class Bar < ActiveResource::Base
+        cached_resource :ttl => 1,
+                        :cache => "cache",
+                        :logger => "logger",
+                        :enabled => false,
+                        :collection_synchronize => true,
+                        :collection_arguments => [:every],
+                        :custom => "irrelevant"
+      end
+
+      class Foo < Bar
+        # override the superclasses configuration
+        self.cached_resource = CachedResource::Configuration.new(:ttl => 60)
+      end
+    end
+
+    after(:each) do
+      Object.send(:remove_const, :Foo)
+      Object.send(:remove_const, :Bar)
+    end
+
+    it "should have the specified options" do
+      cr = Foo.cached_resource
+      cr.ttl.should == 60
+    end
+
+    it "should have the default options for anything unspecified" do
+      cr = Foo.cached_resource
+      cr.cache.class.should == ActiveSupport::Cache::MemoryStore
+      cr.logger.class.should == ActiveSupport::BufferedLogger
+      cr.enabled.should == true
+      cr.collection_synchronize.should == false
+      cr.collection_arguments.should == [:all]
+      cr.custom.should == nil
     end
 
   end
