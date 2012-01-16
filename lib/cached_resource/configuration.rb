@@ -16,7 +16,8 @@ module CachedResource
     # defaults. The following options exist for cached resource:
     # :enabled, default: true
     # :ttl, default: 604800
-    # :collection_synchronize, default: false
+    # :collection_synchronize, default: false,
+    # :collection_arguments, default: [:all]
     # :cache, default: Rails.cache or ActiveSupport::Cache::MemoryStore.new,
     # :logger, default: Rails.logger or ActiveSupport::BufferedLogger.new(NilIO.new)
     def initialize(options={})
