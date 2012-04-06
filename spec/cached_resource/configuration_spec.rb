@@ -24,7 +24,11 @@ describe "CachedResource::Configuration" do
     describe "outside a Rails environment" do
       it "should be logging to a buffered logger attached to a NilIO" do
         configuration.logger.class.should == ActiveSupport::BufferedLogger
-        configuration.logger.instance_variable_get(:@log).class.should == CachedResource::NilIO
+        # ActiveSupport switched around the log destination variables
+        # Check if either are what we expect to be compatible
+        old_as = configuration.logger.instance_variable_get(:@log).class == CachedResource::NilIO
+        new_as = configuration.logger.instance_variable_get(:@log_dest).class == CachedResource::NilIO
+        (old_as || new_as).should == true
       end
 
       it "should cache responses in a memory store" do
