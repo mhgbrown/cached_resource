@@ -55,7 +55,7 @@ module CachedResource
       # Update the cache of singles with an array of updates.
       def update_singles_cache(updates)
         updates = Array(updates)
-        updates.each {|object| cache_write(object.send(primary_key), object)}
+        updates.each { |object| cache_write(object.send(primary_key), object) }
       end
 
       # Update the "mother" collection with an array of updates.
@@ -65,8 +65,8 @@ module CachedResource
 
         if collection && !updates.empty?
           store = RUBY_VERSION.to_f < 1.9 ? ActiveSupport::OrderedHash.new : {}
-          index = collection.inject(store) {|hash, object| hash[object.send(primary_key)] = object; hash}
-          updates.each {|object| index[object.send(primary_key)] = object}
+          index = collection.inject(store) { |hash, object| hash[object.send(primary_key)] = object; hash }
+          updates.each { |object| index[object.send(primary_key)] = object }
           cache_write(cached_resource.collection_arguments, index.values)
         end
       end

@@ -7,13 +7,14 @@ CachedResource is a Ruby gem whose goal is to increase the performance of intera
 ## Compatibility
 CachedResource has been tested with the following Ruby versions:
 
-* 1.8.7 [p249]
-* 1.9.2 [p290]
-* 1.9.3 [p0]
+* 1.8.7
+* 1.9.2
+* 1.9.3
 
 CachedResource is designed to be framework agnostic, but will hook into Rails for caching and logging.  If there is a `Rails.cache` and/or a `Rails.logger`, then it _should_ be OK.  It is known to work with the following Rails versions:
 
 * 3.1.3
+* 3.2.2
 
 ## Configuration
 **Set up CachedResource across all ActiveResources:**
