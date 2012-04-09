@@ -40,6 +40,12 @@ describe CachedResource do
       Thing.cached_resource.cache.read("thing/1").should == result
     end
 
+    it "should cache a response with the same persistence" do
+      result1 = Thing.find(1)
+      result2 = Thing.find(1)
+      result1.persisted?.should == result2.persisted?
+    end
+
     it "should read a response when the request is made again" do
       # make a request
       Thing.find(1)
