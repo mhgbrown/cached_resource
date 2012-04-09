@@ -81,7 +81,9 @@ module CachedResource
       # The key is processed to make sure it is valid.
       def cache_read(key)
         key = cache_key(Array(key)) unless key.is_a? String
-        object = cached_resource.cache.read(key).try(:dup)
+        object = cached_resource.cache.read(key).try do |cache|
+          cache.dup.tap { |o| o.instance_variable_set(:@persisted, cache.persisted?) if cache.respond_to?(:persisted?)}
+        end
         object && cached_resource.logger.info("#{CachedResource::Configuration::LOGGER_PREFIX} READ #{key}")
         object
       end
