@@ -99,7 +99,9 @@ Sit back and relax! If you need to reload a particular request you can pass `:re
 ## Feedback/Problems
 Feedback is greatly appreciated! Check out this project's [issue tracker](https://github.com/Ahsizara/cached_resource/issues) if you've got anything to say.
 
-## Future Work
+## Future Considerations
 This may change at any time.
 
 * Consider checksums to improve the determination of freshness/changédness
+* Callbacks on before and after reload
+
