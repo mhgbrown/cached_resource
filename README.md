@@ -104,4 +104,8 @@ This may change at any time.
 
 * Consider checksums to improve the determination of freshness/changédness
 * Callbacks on before and after reload
+* Cache expiry randomization
+* Move NilIO to its own thang
+
+
 
