@@ -15,6 +15,7 @@ CachedResource is designed to be framework agnostic, but will hook into Rails fo
 
 * 3.1.3
 * 3.2.2
+* 3.2.3
 
 ## Configuration
 **Set up CachedResource across all ActiveResources:**
@@ -102,10 +103,10 @@ Feedback is greatly appreciated! Check out this project's [issue tracker](https:
 ## Future Considerations
 This may change at any time.
 
-* Consider checksums to improve the determination of freshness/changédness
 * Callbacks on before and after reload
 * Cache expiry randomization
-* Move NilIO to its own thang
+* Consider checksums to improve the determination of freshness/changédness
+
 
 
 

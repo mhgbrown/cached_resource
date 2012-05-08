@@ -26,8 +26,8 @@ describe "CachedResource::Configuration" do
         configuration.logger.class.should == ActiveSupport::BufferedLogger
         # ActiveSupport switched around the log destination variables
         # Check if either are what we expect to be compatible
-        old_as = configuration.logger.instance_variable_get(:@log).class == CachedResource::NilIO
-        new_as = configuration.logger.instance_variable_get(:@log_dest).class == CachedResource::NilIO
+        old_as = configuration.logger.instance_variable_get(:@log).class == NilIO
+        new_as = configuration.logger.instance_variable_get(:@log_dest).class == NilIO
         (old_as || new_as).should == true
       end
 
