@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe CachedResource do
 
-  before(:all) do
+  before(:each) do
     class Thing < ActiveResource::Base
       self.site = "http://api.thing.com"
       cached_resource
@@ -17,7 +17,7 @@ describe CachedResource do
     @other_thing_json = @other_thing.to_json
   end
 
-  after(:all) do
+  after(:each) do
     Thing.cached_resource.cache.clear
     Object.send(:remove_const, :Thing)
   end
@@ -229,14 +229,26 @@ describe CachedResource do
         Thing.cached_resource.cache.read("thing/all")[0].name.should_not == result.name
       end
     end
-    
+
     describe "when ttl randomization is enabled" do
       before(:each) do
-        @ttl = 10
-        Thing.cached_resource.cache.clear
+        @ttl = 1
         Thing.cached_resource.ttl = @ttl
         Thing.cached_resource.ttl_randomization = true
+        Thing.cached_resource.send(:sample_range, 0..(2 * @ttl), @ttl)
+        # next ttl 1.72032449344216
       end
+
+      it "should generate a random ttl" do
+        Thing.cached_resource.cache.should_receive(:write)
+        Thing.cached_resource.cache.stub(:write) do |key, value, options|
+          # we know the ttl should not be the same as the set ttl
+          options[:expires_in].should_not == @ttl
+        end
+
+        Thing.find(1)
+      end
+
     end
   end
 
