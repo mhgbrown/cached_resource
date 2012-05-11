@@ -38,9 +38,8 @@ module CachedResource
     # Determine the time until a cache entry should expire.  If ttl_randomization
     # is enabled, then a the set ttl will be added to itself multiplied by a random
     # value from ttl_randomization_scale.
-    def ttl
-      original_ttl = super
-      ttl_randomization && original_ttl + original_ttl * sample_range(ttl_randomization_scale) || original_ttl
+    def generate_ttl
+      ttl_randomization && ttl + ttl * sample_range(ttl_randomization_scale) || ttl
     end
 
     # Enables caching.
