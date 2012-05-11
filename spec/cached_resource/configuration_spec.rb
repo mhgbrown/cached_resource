@@ -110,22 +110,8 @@ describe "CachedResource::Configuration" do
       Foo.cached_resource.object_id.should_not == Bar.cached_resource.object_id
     end
 
-    it "they should have the same cache" do
-      Foo.cached_resource.cache.should == Bar.cached_resource.cache
-      Foo.cached_resource.cache.object_id.should == Bar.cached_resource.cache.object_id
-    end
-
-    it "they should have the same ttl" do
-      Foo.cached_resource.ttl.should == Bar.cached_resource.ttl
-    end
-
-    it "they should have the same logger" do
-      Foo.cached_resource.logger.should == Bar.cached_resource.logger
-      Foo.cached_resource.logger.object_id.should == Bar.cached_resource.logger.object_id
-    end
-
-    it "they should have the same enablement" do
-      Foo.cached_resource.enabled.should == Bar.cached_resource.enabled
+    it "they should have the same attributes" do
+      Foo.cached_resource.instance_variable_get(:@table).should == Bar.cached_resource.instance_variable_get(:@table)
     end
 
   end
@@ -181,8 +167,7 @@ describe "CachedResource::Configuration" do
     end
 
     it "should have the specified options" do
-      cr = Foo.cached_resource
-      cr.ttl.should == 60
+      Foo.cached_resource.ttl.should == 60
     end
 
     it "should have the default options for anything unspecified" do
@@ -193,8 +178,42 @@ describe "CachedResource::Configuration" do
       cr.collection_synchronize.should == false
       cr.collection_arguments.should == [:all]
       cr.custom.should == nil
+      cr.ttl_randomization.should == false
+      cr.ttl_randomization_scale.should == (0..1)
     end
 
   end
 
+  # At the moment, not too keen on implementing some fancy
+  # randomness validator.
+  describe "when ttl randomization is enabled" do
+    before(:each) do
+      @ttl = 10
+      configuration.ttl = @ttl
+      configuration.ttl_randomization = true
+      configuration.send(:sample_range, 0..@ttl, @ttl)
+      # next ttl: 10.207519493594015
+    end
+
+    it "it should produce a random ttl between ttl and ttl * 2" do
+      generated_ttl = configuration.ttl
+      generated_ttl.should_not == 10
+      (@ttl..(2 * @ttl)).should include(generated_ttl)
+    end
+
+    describe "when a ttl randomization scale is set" do
+      before(:each) do
+        @lower = -0.5
+        @upper = 0.5
+        configuration.ttl_randomization_scale = @lower..@upper
+        # next ttl 5.207519493594015
+      end
+
+      it "should produce a random ttl between ttl + ttl * lower bound and ttl + ttl * upper bound" do
+        lower = @ttl + @ttl * @lower
+        upper = @ttl + @ttl * @upper
+        (lower..upper).should include(configuration.ttl)
+      end
+    end
+  end
 end

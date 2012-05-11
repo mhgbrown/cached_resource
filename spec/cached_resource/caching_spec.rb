@@ -237,23 +237,6 @@ describe CachedResource do
         Thing.cached_resource.ttl = @ttl
         Thing.cached_resource.ttl_randomization = true
       end
-      
-      it "it should produce a ttl between ttl and ttl * 2" do
-        (@ttl..(2 * @ttl)).should include(Thing.cached_resource.ttl)
-      end
-      
-      describe "when a ttl randomization scale is set" do
-        before(:each) do
-          Thing.cached_resource.ttl_randomization_scale = -0.5..0.5
-        end
-        
-        it "should produce a ttl between ttl + ttl * lower bound and ttl + ttl * upper bound" do
-          lower = @ttl + @ttl * -0.5
-          upper = @ttl + @ttl * 0.5
-          (lower..upper).should include(Thing.cached_resource.ttl)
-        end
-      end
-      
     end
   end
 
