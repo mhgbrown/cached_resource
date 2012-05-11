@@ -39,7 +39,8 @@ module CachedResource
     # is enabled, then a the set ttl will be added to itself multiplied by a random
     # value from ttl_randomization_scale.
     def ttl
-      ttl_randomization && super + super * rand(ttl_randomization_scale) || super
+      original_ttl = super
+      ttl_randomization && original_ttl + original_ttl * sample_range(ttl_randomization_scale) || original_ttl
     end
 
     # Enables caching.
@@ -50,6 +51,19 @@ module CachedResource
     # Disables caching.
     def off!
       self.enabled = false
+    end
+
+    private
+
+    # Choose a random value from within the given range, optionally
+    # seeded by seed. If the given range is a Numeric, it will be
+    # converted to a Range between 0 and range.
+    def sample_range(range, seed=nil)
+      srand seed if seed
+      # Numeric isn't quite right, since a Complex
+      # would pass.
+      range = 0..range if range.is_a? Numeric
+      rand * (range.end - range.begin) + range.begin
     end
 
   end
