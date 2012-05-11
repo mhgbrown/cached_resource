@@ -56,13 +56,9 @@ module CachedResource
     private
 
     # Choose a random value from within the given range, optionally
-    # seeded by seed. If the given range is a Numeric, it will be
-    # converted to a Range between 0 and range.
+    # seeded by seed.
     def sample_range(range, seed=nil)
       srand seed if seed
-      # Numeric isn't quite right, since a Complex
-      # would pass.
-      range = 0..range if range.is_a? Numeric
       rand * (range.end - range.begin) + range.begin
     end
 

@@ -189,7 +189,7 @@ describe "CachedResource::Configuration" do
   describe "when ttl randomization is enabled" do
     before(:each) do
       @ttl = 10
-      configuration.ttl = @ttl
+      configuration.ttl = 0..@ttl
       configuration.ttl_randomization = true
       configuration.send(:sample_range, 0..@ttl, @ttl)
       # next ttl: 10.207519493594015
