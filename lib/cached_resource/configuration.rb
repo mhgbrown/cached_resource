@@ -39,7 +39,7 @@ module CachedResource
     # is enabled, then a the set ttl will be added to itself multiplied by a random
     # value from ttl_randomization_scale.
     def generate_ttl
-      ttl_randomization && ttl + ttl * sample_range(ttl_randomization_scale) || ttl
+      ttl_randomization && randomized_ttl || ttl
     end
 
     # Enables caching.
@@ -53,6 +53,12 @@ module CachedResource
     end
 
     private
+
+    # Get a randomized ttl value between ttl + ttl * ttl_randomization_scale begin
+    # and ttl + ttl * ttl_randomization_scale end
+    def randomized_ttl
+      ttl + ttl * sample_range(ttl_randomization_scale)
+    end
 
     # Choose a random value from within the given range, optionally
     # seeded by seed.
