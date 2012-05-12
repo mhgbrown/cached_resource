@@ -35,7 +35,7 @@ CachedResource accepts the following options:
 * `:ttl` The time in seconds until the cache should expire. Default: `604800`
 * `:ttl_randomization` Enable ttl randomization. Default: `false`
 * `:ttl_randomization_scale` A Range from which a random value will be selected to scale the ttl. Default: `1..2`
-* `:collection_synchronize` Use collections to generate cache entries for individuals.  Update the existing cached principal collection with new individuals.  Default: `false`
+* `:collection_synchronize` Use collections to generate cache entries for individuals.  Update the existing cached principal collection when retrieving subsets of the principal collection or individuals.  Default: `false`
 * `:collection_arguments` The arguments that identify the principal collection request. Default: `[:all]`
 * `:logger` The logger to which CachedResource messages should be written. Default: The `Rails.logger` if available, or an `ActiveSupport::BufferedLogger`
 * `:cache` The cache store that CacheResource should use. Default: The `Rails.cache` if available, or an `ActiveSupport::Cache::MemoryStore`
