@@ -179,7 +179,7 @@ describe "CachedResource::Configuration" do
       cr.collection_arguments.should == [:all]
       cr.custom.should == nil
       cr.ttl_randomization.should == false
-      cr.ttl_randomization_scale.should == (0..1)
+      cr.ttl_randomization_scale.should == (1..2)
     end
 
   end
@@ -188,11 +188,11 @@ describe "CachedResource::Configuration" do
   # randomness validator.
   describe "when ttl randomization is enabled" do
     before(:each) do
-      @ttl = 10
+      @ttl = 1
       configuration.ttl = @ttl
       configuration.ttl_randomization = true
-      configuration.send(:sample_range, 0..@ttl, @ttl)
-      # next ttl: 10.207519493594015
+      configuration.send(:sample_range, 1..2, @ttl)
+      # next ttl: 1.72032449344216
     end
 
     it "it should produce a random ttl between ttl and ttl * 2" do
@@ -203,15 +203,15 @@ describe "CachedResource::Configuration" do
 
     describe "when a ttl randomization scale is set" do
       before(:each) do
-        @lower = -0.5
-        @upper = 0.5
+        @lower = 0.5
+        @upper = 1
         configuration.ttl_randomization_scale = @lower..@upper
-        # next ttl 5.207519493594015
+        # next ttl 0.860162246721079
       end
 
-      it "should produce a random ttl between ttl + ttl * lower bound and ttl + ttl * upper bound" do
-        lower = @ttl + @ttl * @lower
-        upper = @ttl + @ttl * @upper
+      it "should produce a random ttl between ttl * lower bound and ttl * upper bound" do
+        lower = @ttl * @lower
+        upper = @ttl * @upper
         (lower..upper).should include(configuration.generate_ttl)
       end
     end

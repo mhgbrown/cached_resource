@@ -235,7 +235,7 @@ describe CachedResource do
         @ttl = 1
         Thing.cached_resource.ttl = @ttl
         Thing.cached_resource.ttl_randomization = true
-        Thing.cached_resource.send(:sample_range, 0..(2 * @ttl), @ttl)
+        Thing.cached_resource.send(:sample_range, 1..2, @ttl)
         # next ttl 1.72032449344216
       end
 

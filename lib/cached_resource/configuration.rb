@@ -27,7 +27,7 @@ module CachedResource
         :enabled => true,
         :ttl => 604800,
         :ttl_randomization => false,
-        :ttl_randomization_scale => 0..1,
+        :ttl_randomization_scale => 1..2,
         :collection_synchronize => false,
         :collection_arguments => [:all],
         :cache => defined?(Rails.cache)  && Rails.cache || CACHE,
@@ -36,7 +36,7 @@ module CachedResource
     end
 
     # Determine the time until a cache entry should expire.  If ttl_randomization
-    # is enabled, then a the set ttl will be added to itself multiplied by a random
+    # is enabled, then a the set ttl will be multiplied by a random
     # value from ttl_randomization_scale.
     def generate_ttl
       ttl_randomization && randomized_ttl || ttl
@@ -54,10 +54,10 @@ module CachedResource
 
     private
 
-    # Get a randomized ttl value between ttl + ttl * ttl_randomization_scale begin
-    # and ttl + ttl * ttl_randomization_scale end
+    # Get a randomized ttl value between ttl * ttl_randomization_scale begin
+    # and ttl * ttl_randomization_scale end
     def randomized_ttl
-      ttl + ttl * sample_range(ttl_randomization_scale)
+      ttl * sample_range(ttl_randomization_scale)
     end
 
     # Choose a random value from within the given range, optionally
