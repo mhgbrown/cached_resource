@@ -62,7 +62,7 @@ Enable cache expiry time randomization, allowing it to fall randomly between 60 
 
 	MyActiveResource.cached_resource.ttl_randomization = true
 
-Change the cache expiry time randomization scale so that the cache expiry time falls between 30 and 180 seconds.
+Change the cache expiry time randomization scale so that the cache expiry time falls randomly between 30 and 180 seconds.
 
 	MyActiveResource.cached_resource.ttl_randomization_scale = 0.5..3
 
@@ -112,7 +112,6 @@ Feedback is greatly appreciated! Check out this project's [issue tracker](https:
 This may change at any time.
 
 * Callbacks on before and after reload
-* Cache expiry randomization
 * Consider checksums to improve the determination of freshness/changédness
 
 
