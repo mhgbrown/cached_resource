@@ -8,14 +8,12 @@ CachedResource is a Ruby gem whose goal is to increase the performance of intera
 CachedResource has been tested with the following Ruby versions:
 
 * 1.8.7
-* 1.9.2
-* 1.9.3
+* 1.9.2, 1.9.3
 
 CachedResource is designed to be framework agnostic, but will hook into Rails for caching and logging.  If there is a `Rails.cache` and/or a `Rails.logger`, then it _should_ be OK.  It is known to work with the following Rails versions:
 
 * 3.1.3
-* 3.2.2
-* 3.2.3
+* 3.2.2, 3.2.3
 
 ## Configuration
 **Set up CachedResource across all ActiveResources:**
@@ -35,6 +33,8 @@ CachedResource accepts the following options:
 
 * `:enabled` Default: `true`
 * `:ttl` The time in seconds until the cache should expire. Default: `604800`
+* `:ttl_randomization` Enable ttl randomization. Default: `false`
+* `:ttl_randomization_scale` A Range from which a random value will be selected to scale the ttl. Default: `1..2`
 * `:collection_synchronize` Use collections to generate cache entries for individuals.  Update the existing cached principal collection with new individuals.  Default: `false`
 * `:collection_arguments` The arguments that identify the principal collection request. Default: `[:all]`
 * `:logger` The logger to which CachedResource messages should be written. Default: The `Rails.logger` if available, or an `ActiveSupport::BufferedLogger`
@@ -42,7 +42,7 @@ CachedResource accepts the following options:
 
 You can set them like this:
 
-	cached_resource :cache => MyCacheStore.new, :ttl => 60, :collection_synchronize => true, :logger => MyLogger.new, :enabled => false
+	cached_resource :cache => MyCacheStore.new, :ttl => 60, :collection_synchronize => true, :logger => MyLogger.new
 
 You can also change them on the fly.
 
@@ -58,11 +58,19 @@ Set the cache expiry time to 60 seconds.
 
 	MyActiveResource.cached_resource.ttl = 60
 
+Enable ttl randomization between 60 and 120 exclusive.
+
+	MyActiveResource.cached_resource.ttl_randomization = true
+
+Change the ttl randomization scale so that the ttl falls between 30 and 180 exclusive.
+
+	MyActiveResource.cached_resource.ttl_randomization_scale = 0.5..3
+
 Enable collection synchronization.  This will cause a call to `MyActiveResource.all` to also create cache entries for each of its members.  So, for example, a later call to `MyActiveResource.find(1)` will be read from the cache instead of requested from the remote service.
 
 	MyActiveResource.cached_resource.collection_synchronize = true
 
-Change the arguments that identify the principal collection request.  If for some reason you are concerned with a collection that is retrieved at a non-standard URL, you may specify the Ruby arguments that produce that URL.  When `collection_synchronize` is `true`, the collection returned from a request that matches these arguments will be cached and later updated when one of its members is retrieved.
+Change the arguments that identify the principal collection request.  If for some reason you are concerned with a collection that is retrieved at a "non-standard" URL, you may specify the Ruby arguments that produce that URL.  When `collection_synchronize` is `true`, the collection returned from a request that matches these arguments will be cached and later updated when one of its members or a subset is retrieved.
 
 	MyActiveResource.cached_resource.collection_arguments = [:all, :params => {:name => "Bob"}]
 

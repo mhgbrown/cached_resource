@@ -17,7 +17,7 @@ module CachedResource
     # :enabled, default: true
     # :ttl, default: 604800
     # :ttl_randomization, default: false,
-    # :ttl_randomization_scale, default: 0..1,
+    # :ttl_randomization_scale, default: 1..2,
     # :collection_synchronize, default: false,
     # :collection_arguments, default: [:all]
     # :cache, default: Rails.cache or ActiveSupport::Cache::MemoryStore.new,
