@@ -58,11 +58,11 @@ Set the cache expiry time to 60 seconds.
 
 	MyActiveResource.cached_resource.ttl = 60
 
-Enable ttl randomization between 60 and 120 exclusive.
+Enable cache expiry time randomization between 60 and 120 seconds exclusive.
 
 	MyActiveResource.cached_resource.ttl_randomization = true
 
-Change the ttl randomization scale so that the ttl falls between 30 and 180 exclusive.
+Change the cache expiry time randomization scale so that the cache expiry time falls between 30 and 180 seconds exclusive.
 
 	MyActiveResource.cached_resource.ttl_randomization_scale = 0.5..3
 
