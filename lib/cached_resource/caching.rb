@@ -64,7 +64,7 @@ module CachedResource
         collection = cache_read(cached_resource.collection_arguments)
 
         if collection && !updates.empty?
-          store = RUBY_VERSION.to_f < 1.9 ? ActiveSupport::OrderedHash.new : {}
+          store = CachedResource::Configuration::ORDERED_HASH.new
           index = collection.inject(store) { |hash, object| hash[object.send(primary_key)] = object; hash }
           updates.each { |object| index[object.send(primary_key)] = object }
           cache_write(cached_resource.collection_arguments, index.values)

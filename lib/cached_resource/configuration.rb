@@ -3,6 +3,9 @@ module CachedResource
   # for cached resource.
   class Configuration < OpenStruct
 
+    # Determine and set an appropriate ordered hash based on the current ruby version
+    ORDERED_HASH = RUBY_VERSION.to_f < 1.9 ? ActiveSupport::OrderedHash : Hash
+
     # default or fallback cache without rails
     CACHE = ActiveSupport::Cache::MemoryStore.new
 
