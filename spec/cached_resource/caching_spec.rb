@@ -50,6 +50,12 @@ describe CachedResource do
       Thing.cached_resource.cache.read("thing/fded").should == result
     end
 
+    it "should empty the cache when clear_cache is called" do
+      result = Thing.find(1)
+      Thing.clear_cache
+      Thing.cached_resource.cache.read("thing/1").should == nil
+    end
+
     it "should cache a response with the same persistence" do
       result1 = Thing.find(1)
       result2 = Thing.find(1)
@@ -184,6 +190,15 @@ describe CachedResource do
 
     end
 
+    shared_examples "collection_cache_clearing" do
+      it "should empty the cache when clear_cache is called" do
+        Thing.clear_cache
+        Thing.cached_resource.cache.read("thing/all").should == nil
+        Thing.cached_resource.cache.read("thing/1").should == nil
+      end
+
+    end
+
     describe "when collection synchronize is enabled" do
       before(:each) do
         Thing.cached_resource.cache.clear
@@ -211,6 +226,8 @@ describe CachedResource do
         Thing.cached_resource.cache.read("thing/1").should == result
         Thing.cached_resource.cache.read("thing/fded").should == string_result
       end
+
+      include_examples "collection_cache_clearing"
 
       it "should rewrite cache entries for its members when reloaded" do
         # get the soon to be stale result so that we have a cache entry
@@ -343,6 +360,8 @@ describe CachedResource do
         # both the all in the before each and this request should have been made
         ActiveResource::HttpMock.requests.length.should == 3
       end
+
+      include_examples "collection_cache_clearing"
 
       it "should not update the collection when an individual request is reloaded" do
         # change the server
