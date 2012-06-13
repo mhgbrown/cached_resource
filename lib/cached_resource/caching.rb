@@ -36,7 +36,7 @@ module CachedResource
         object = find_without_cache(*arguments)
         cache_collection_synchronize(object, *arguments) if cached_resource.collection_synchronize
         cache_write(key, object)
-        object
+        cache_read(key)
       end
 
       # If this is a pure, unadulterated "all" request
