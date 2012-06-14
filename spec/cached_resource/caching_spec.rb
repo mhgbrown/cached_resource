@@ -96,6 +96,66 @@ describe CachedResource do
       ActiveResource::HttpMock.requests.length.should == 2
     end
 
+    it "should not return a frozen object on first request" do
+      result1 = Thing.find(1)
+      result1.should_not be_frozen
+    end
+
+    it "should not return frozen object on a subsequent request" do
+      result1 = Thing.find(1)
+      result2 = Thing.find(1)
+      result2.should_not be_frozen
+    end
+
+    it "should not freeze first requested object on a subsequent request" do
+      result1 = Thing.find(1)
+      result2 = Thing.find(1)
+      result1.should_not be_frozen
+    end
+
+    shared_examples "collection_freezing" do
+      it "should not return a frozen collection on first request" do
+        Thing.cached_resource.cache.clear
+        collection1 = Thing.all
+        collection1.should_not be_frozen
+      end
+
+      it "should not return a frozen collection on a subsequent request" do
+        Thing.cached_resource.cache.clear
+        collection1 = Thing.all
+        collection2 = Thing.all
+        collection2.should_not be_frozen
+      end
+
+      it "should not freeze first requested collection on a subsequent request" do
+        Thing.cached_resource.cache.clear
+        result1 = Thing.all
+        result2 = Thing.all
+        result1.should_not be_frozen
+      end
+
+      it "should not return frozen members on first request" do
+        Thing.cached_resource.cache.clear
+        collection1 = Thing.all
+        collection1.first.should_not be_frozen
+      end
+
+      it "should not return frozen members on a subsequent request" do
+        Thing.cached_resource.cache.clear
+        collection1 = Thing.all
+        collection2 = Thing.all
+        collection2.first.should_not be_frozen
+      end
+
+      it "should not freeze members on a subsequent request" do
+        Thing.cached_resource.cache.clear
+        collection1 = Thing.all
+        member1 = Thing.find(1)
+        collection1.first.should_not be_frozen
+      end
+
+    end
+
     describe "when collection synchronize is enabled" do
       before(:each) do
         Thing.cached_resource.cache.clear
@@ -110,6 +170,8 @@ describe CachedResource do
         # make a request for all things
         Thing.all
       end
+
+      include_examples "collection_freezing"
 
       it "should write cache entries for its members" do
         result = Thing.find(1)
@@ -209,6 +271,8 @@ describe CachedResource do
         # make a request for all things
         Thing.all
       end
+
+      include_examples "collection_freezing"
 
       it "should not write cache entries for its members" do
         result = Thing.find(1)

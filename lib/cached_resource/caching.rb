@@ -36,7 +36,7 @@ module CachedResource
         object = find_without_cache(*arguments)
         cache_collection_synchronize(object, *arguments) if cached_resource.collection_synchronize
         cache_write(key, object)
-        object
+        cache_read(key)
       end
 
       # If this is a pure, unadulterated "all" request
@@ -82,7 +82,11 @@ module CachedResource
       def cache_read(key)
         key = cache_key(Array(key)) unless key.is_a? String
         object = cached_resource.cache.read(key).try do |cache|
-          cache.dup.tap { |o| o.instance_variable_set(:@persisted, cache.persisted?) if cache.respond_to?(:persisted?) }
+          if cache.is_a? Enumerable
+            cache.map { |record| full_dup(record) }
+          else
+            full_dup(cache)
+          end
         end
         object && cached_resource.logger.info("#{CachedResource::Configuration::LOGGER_PREFIX} READ #{key}")
         object
@@ -100,6 +104,14 @@ module CachedResource
       # Generate the request cache key.
       def cache_key(*arguments)
         "#{name.parameterize.gsub("-", "/")}/#{arguments.join('/')}".downcase
+      end
+
+      # Make a full duplicate of an ActiveResource record.
+      # Currently just dups the record then copies the persisted state.
+      def full_dup(record)
+        record.dup.tap do |o|
+          o.instance_variable_set(:@persisted, record.persisted?)
+        end
       end
 
     end
