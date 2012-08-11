@@ -10,7 +10,7 @@ module CachedResource
     CACHE = ActiveSupport::Cache::MemoryStore.new
 
     # default of fallback logger without rails
-    LOGGER = ActiveSupport::BufferedLogger.new(NilIO.new)
+    LOGGER = ActiveSupport::BufferedLogger.new(NilIO.instance)
 
     # prefix for log messages
     LOGGER_PREFIX = "[cached_resource]"
