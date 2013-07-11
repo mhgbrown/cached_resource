@@ -43,7 +43,7 @@ module CachedResource
       # write cache entries for all its members
       # otherwise update an existing collection if possible.
       def cache_collection_synchronize(object, *arguments)
-        if object.is_a? Array
+        if object.is_a? Enumerable
           update_singles_cache(object)
           # update the collection only if this is a subset of it
           update_collection_cache(object) unless is_collection?(*arguments)
