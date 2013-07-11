@@ -55,19 +55,19 @@ module CachedResource
       # Update the cache of singles with an array of updates.
       def update_singles_cache(updates)
         updates = Array(updates)
-        updates.each { |object| cache_write(object.send(primary_key), object) }
+        updates.each { |object| cache_write(cache_key(object.send(primary_key)), object) }
       end
 
       # Update the "mother" collection with an array of updates.
       def update_collection_cache(updates)
         updates = Array(updates)
-        collection = cache_read(cached_resource.collection_arguments)
+        collection = cache_read(cache_key(cached_resource.collection_arguments))
 
         if collection && !updates.empty?
           store = CachedResource::Configuration::ORDERED_HASH.new
           index = collection.inject(store) { |hash, object| hash[object.send(primary_key)] = object; hash }
           updates.each { |object| index[object.send(primary_key)] = object }
-          cache_write(cached_resource.collection_arguments, index.values)
+          cache_write(cache_key(cached_resource.collection_arguments), index.values)
         end
       end
 
@@ -78,9 +78,7 @@ module CachedResource
       end
 
       # Read a entry from the cache for the given key.
-      # The key is processed to make sure it is valid.
       def cache_read(key)
-        key = cache_key(Array(key)) unless key.is_a? String
         object = cached_resource.cache.read(key).try do |cache|
           if cache.is_a? Enumerable
             cache.map { |record| full_dup(record) }
@@ -93,9 +91,7 @@ module CachedResource
       end
 
       # Write an entry to the cache for the given key and value.
-      # The key is processed to make sure it is valid.
       def cache_write(key, object)
-        key = cache_key(Array(key)) unless key.is_a? String
         result = cached_resource.cache.write(key, object, :expires_in => cached_resource.generate_ttl)
         result && cached_resource.logger.info("#{CachedResource::Configuration::LOGGER_PREFIX} WRITE #{key}")
         result

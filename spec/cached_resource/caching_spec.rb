@@ -13,8 +13,12 @@ describe CachedResource do
     @thing2 = {:thing => {:id => 2, :name => "Joe"}}
     @other_thing2 = {:thing => {:id => 2, :name => "Jeb"}}
     @thing3 = {:thing => {:id => 3, :name => "Stu"}}
+    @string_thing = {:thing => {:id => "fded", :name => "Lev"}}
+    @other_string_thing = {:thing => {:id => "fded", :name => "Lon"}}
     @thing_json = @thing.to_json
     @other_thing_json = @other_thing.to_json
+    @string_thing_json = @string_thing.to_json
+    @other_string_thing_json = @other_string_thing.to_json
   end
 
   after(:each) do
@@ -32,12 +36,18 @@ describe CachedResource do
       ActiveResource::HttpMock.reset!
       ActiveResource::HttpMock.respond_to do |mock|
         mock.get "/things/1.json", {}, @thing_json
+        mock.get "/things/fded.json", {}, @string_thing_json
       end
     end
 
     it "should cache a response" do
       result = Thing.find(1)
       Thing.cached_resource.cache.read("thing/1").should == result
+    end
+
+    it "should cache a response for a string primary key" do
+      result = Thing.find("fded")
+      Thing.cached_resource.cache.read("thing/fded").should == result
     end
 
     it "should cache a response with the same persistence" do
@@ -55,11 +65,29 @@ describe CachedResource do
       ActiveResource::HttpMock.requests.length.should == 1
     end
 
+    it "should read a response when the request is made again for a string primary key" do
+      # make a request
+      Thing.find("fded")
+      # make the same request
+      Thing.find("fded")
+      # only one request should have happened
+      ActiveResource::HttpMock.requests.length.should == 1
+    end
+
     it "should remake a request when reloaded" do
       # make a request
       Thing.find(1)
       # make the same request, but reload it
       Thing.find(1, :reload => true)
+      # we should get two requests
+      ActiveResource::HttpMock.requests.length.should == 2
+    end
+
+    it "should remake a request when reloaded for a string primary key" do
+      # make a request
+      Thing.find("fded")
+      # make the same request, but reload it
+      Thing.find("fded", :reload => true)
       # we should get two requests
       ActiveResource::HttpMock.requests.length.should == 2
     end
@@ -164,7 +192,8 @@ describe CachedResource do
         ActiveResource::HttpMock.reset!
         ActiveResource::HttpMock.respond_to do |mock|
           mock.get "/things/1.json", {}, @thing_json
-          mock.get "/things.json", {}, [@thing[:thing]].to_json(:root => :thing)
+          mock.get "/things/fded.json", {}, @string_thing_json
+          mock.get "/things.json", {}, [@thing[:thing], @string_thing[:thing]].to_json(:root => :thing)
         end
 
         # make a request for all things
@@ -175,19 +204,23 @@ describe CachedResource do
 
       it "should write cache entries for its members" do
         result = Thing.find(1)
+        string_result = Thing.find("fded")
         # only the all request should have been made
         ActiveResource::HttpMock.requests.length.should == 1
         # the result should be cached with the appropriate key
         Thing.cached_resource.cache.read("thing/1").should == result
+        Thing.cached_resource.cache.read("thing/fded").should == string_result
       end
 
       it "should rewrite cache entries for its members when reloaded" do
         # get the soon to be stale result so that we have a cache entry
         old_result = Thing.find(1)
+        old_string_result = Thing.find("fded")
         # change the server
         ActiveResource::HttpMock.respond_to do |mock|
           mock.get "/things/1.json", {}, @other_thing_json
-          mock.get "/things.json", {}, [@other_thing[:thing]].to_json(:root => :thing)
+          mock.get "/things/fded.json", {}, @other_string_thing_json
+          mock.get "/things.json", {}, [@other_thing[:thing], @other_string_thing[:thing]].to_json(:root => :thing)
         end
         # reload the collection
         Thing.all(:reload => true)
@@ -195,19 +228,26 @@ describe CachedResource do
         result = Thing.find(1)
         Thing.cached_resource.cache.read("thing/all")[0].should == result
         Thing.cached_resource.cache.read("thing/all")[0].name.should == result.name
+        string_result = Thing.find("fded")
+        Thing.cached_resource.cache.read("thing/all")[1].should == string_result
+        Thing.cached_resource.cache.read("thing/all")[1].name.should == string_result.name
       end
 
       it "should update the collection when an individual request is reloaded" do
         # change the server
         ActiveResource::HttpMock.respond_to do |mock|
           mock.get "/things/1.json", {}, @other_thing_json
-          mock.get "/things.json", {}, [@other_thing[:thing]].to_json(:root => :thing)
+          mock.get "/things/fded.json", {}, @other_string_thing_json
+          mock.get "/things.json", {}, [@other_thing[:thing], @other_string_thing[:thing]].to_json(:root => :thing)
         end
 
         # reload the individual
         result = Thing.find(1, :reload => true)
         Thing.cached_resource.cache.read("thing/all")[0].should == result
         Thing.cached_resource.cache.read("thing/all")[0].name.should == result.name
+        string_result = Thing.find("fded", :reload => true)
+        Thing.cached_resource.cache.read("thing/all")[1].should == string_result
+        Thing.cached_resource.cache.read("thing/all")[1].name.should == string_result.name
       end
 
       it "should update both the collection and the member cache entries when a subset of the collection is retrieved" do
@@ -218,6 +258,7 @@ describe CachedResource do
         # change the server
         ActiveResource::HttpMock.respond_to do |mock|
           mock.get "/things.json?name=Ari", {}, [@other_thing[:thing]].to_json(:root => :thing)
+          mock.get "/things.json?name=Lon", {}, [@other_string_thing[:thing]].to_json(:root => :thing)
         end
 
         # make a request for a subset of the "mother" collection
@@ -228,12 +269,21 @@ describe CachedResource do
         # the individual should be updated to reflect the server change
         Thing.cached_resource.cache.read("thing/1").should == result[0]
         Thing.cached_resource.cache.read("thing/1").name.should == result[0].name
+
+        # make a request for a subset of the "mother" collection
+        result = Thing.find(:all, :params => {:name => "Lon"})
+        # the collection should be updated to reflect the server change
+        Thing.cached_resource.cache.read("thing/all")[1].should == result[0]
+        Thing.cached_resource.cache.read("thing/all")[1].name.should == result[0].name
+        # the individual should be updated to reflect the server change
+        Thing.cached_resource.cache.read("thing/fded").should == result[0]
+        Thing.cached_resource.cache.read("thing/fded").name.should == result[0].name
       end
 
       it "should maintain the order of the collection when updating it" do
         # change the server to return a longer collection
         ActiveResource::HttpMock.respond_to do |mock|
-          mock.get "/things.json", {}, [@thing[:thing], @thing3[:thing], @thing2[:thing]].to_json(:root => :thing)
+          mock.get "/things.json", {}, [@thing[:thing], @thing3[:thing], @thing2[:thing], @string_thing[:thing]].to_json(:root => :thing)
         end
 
         # create cache entry for the collection (we reload because in before block we make an all request)
@@ -242,6 +292,7 @@ describe CachedResource do
         # change the server's response for the thing with id 2
         ActiveResource::HttpMock.respond_to do |mock|
           mock.get "/things/2.json", {}, @other_thing2.to_json(:root => :thing)
+          mock.get "/things/fded.json", {}, @other_string_thing.to_json(:root => :thing)
         end
 
         # get thing 2, thereby updating the collection
@@ -250,6 +301,17 @@ describe CachedResource do
         updated_collection = Thing.all
         # name should have changed to "Jeb"
         updated_collection[2].name.should == result.name
+        # the updated collection should have the elements in the same order
+        old_collection.each_with_index do |thing, i|
+          updated_collection[i].id.should == thing.id
+        end
+
+        # get string thing, thereby updating the collection
+        string_result = Thing.find("fded", :reload => true)
+        # get the updated collection from the cache
+        updated_collection = Thing.all
+        # name should have changed to "Lon"
+        updated_collection[3].name.should == string_result.name
         # the updated collection should have the elements in the same order
         old_collection.each_with_index do |thing, i|
           updated_collection[i].id.should == thing.id
@@ -265,7 +327,8 @@ describe CachedResource do
         ActiveResource::HttpMock.reset!
         ActiveResource::HttpMock.respond_to do |mock|
           mock.get "/things/1.json", {}, @thing_json
-          mock.get "/things.json", {}, [@thing[:thing]].to_json(:root => :thing)
+          mock.get "/things/fded.json", {}, @string_thing_json
+          mock.get "/things.json", {}, [@thing[:thing], @string_thing[:thing]].to_json(:root => :thing)
         end
 
         # make a request for all things
@@ -276,21 +339,28 @@ describe CachedResource do
 
       it "should not write cache entries for its members" do
         result = Thing.find(1)
+        result = Thing.find("fded")
         # both the all in the before each and this request should have been made
-        ActiveResource::HttpMock.requests.length.should == 2
+        ActiveResource::HttpMock.requests.length.should == 3
       end
 
       it "should not update the collection when an individual request is reloaded" do
         # change the server
         ActiveResource::HttpMock.respond_to do |mock|
           mock.get "/things/1.json", {}, @other_thing_json
-          mock.get "/things.json", {}, [@other_thing[:thing]].to_json(:root => :thing)
+          mock.get "/things/fded.json", {}, @other_string_thing_json
+          mock.get "/things.json", {}, [@other_thing[:thing], @other_string_thing[:thing]].to_json(:root => :thing)
         end
 
         # reload the individual
         result = Thing.find(1, :reload => true)
         # the ids are the same, but the names should be different
         Thing.cached_resource.cache.read("thing/all")[0].name.should_not == result.name
+
+        # reload the individual
+        string_result = Thing.find("fded", :reload => true)
+        # the ids are the same, but the names should be different
+        Thing.cached_resource.cache.read("thing/all")[1].name.should_not == string_result.name
       end
     end
 
@@ -324,6 +394,7 @@ describe CachedResource do
       ActiveResource::HttpMock.reset!
       ActiveResource::HttpMock.respond_to do |mock|
         mock.get "/things/1.json", {}, @thing_json
+        mock.get "/things/fded.json", {}, @string_thing_json
       end
     end
 
@@ -332,10 +403,22 @@ describe CachedResource do
       Thing.cached_resource.cache.read("thing/1").should == result
     end
 
+    it "should cache a response for a string primary key" do
+      result = Thing.find("fded")
+      Thing.cached_resource.cache.read("thing/fded").should == result
+    end
+
     it "should always remake the request" do
       Thing.find(1)
       ActiveResource::HttpMock.requests.length.should == 1
       Thing.find(1)
+      ActiveResource::HttpMock.requests.length.should == 2
+    end
+
+    it "should always remake the request for a string primary key" do
+      Thing.find("fded")
+      ActiveResource::HttpMock.requests.length.should == 1
+      Thing.find("fded")
       ActiveResource::HttpMock.requests.length.should == 2
     end
 
@@ -351,6 +434,24 @@ describe CachedResource do
 
       Thing.find(1)
       new_result = Thing.cached_resource.cache.read("thing/1")
+      # since active resources are equal if and only if they
+      # are the same object or an instance of the same class,
+      # not new?, and have the same id.
+      new_result.name.should_not == old_result.name
+    end
+
+    it "should rewrite the cache for each request for a string primary key" do
+      Thing.find("fded")
+      old_result = Thing.cached_resource.cache.read("thing/fded")
+
+      # change the response
+      ActiveResource::HttpMock.reset!
+      ActiveResource::HttpMock.respond_to do |mock|
+        mock.get "/things/fded.json", {}, @other_string_thing_json
+      end
+
+      Thing.find("fded")
+      new_result = Thing.cached_resource.cache.read("thing/fded")
       # since active resources are equal if and only if they
       # are the same object or an instance of the same class,
       # not new?, and have the same id.
