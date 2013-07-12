@@ -29,7 +29,8 @@ describe "CachedResource::Configuration" do
         # Check if either are what we expect to be compatible
         old_as = configuration.logger.instance_variable_get(:@log).class == NilIO
         new_as = configuration.logger.instance_variable_get(:@log_dest).class == NilIO
-        (old_as || new_as).should == true
+        newer_as = configuration.logger.instance_variable_get(:@logdev).instance_variable_get(:@dev).class == NilIO
+        (old_as || new_as || newer_as).should == true
       end
 
       it "should cache responses in a memory store" do
