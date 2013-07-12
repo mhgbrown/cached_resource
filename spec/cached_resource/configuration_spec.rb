@@ -3,6 +3,7 @@ require 'spec_helper'
 describe "CachedResource::Configuration" do
 
   let(:configuration) { CachedResource::Configuration.new }
+  let(:default_logger) { defined?(ActiveSupport::Logger) ? ActiveSupport::Logger : ActiveSupport::BufferedLogger }
 
   describe "by default" do
     it "should be enabled" do
@@ -23,12 +24,13 @@ describe "CachedResource::Configuration" do
 
     describe "outside a Rails environment" do
       it "should be logging to a buffered logger attached to a NilIO" do
-        configuration.logger.class.should == ActiveSupport::BufferedLogger
+        configuration.logger.class.should == default_logger
         # ActiveSupport switched around the log destination variables
         # Check if either are what we expect to be compatible
         old_as = configuration.logger.instance_variable_get(:@log).class == NilIO
         new_as = configuration.logger.instance_variable_get(:@log_dest).class == NilIO
-        (old_as || new_as).should == true
+        newer_as = configuration.logger.instance_variable_get(:@logdev).instance_variable_get(:@dev).class == NilIO
+        (old_as || new_as || newer_as).should == true
       end
 
       it "should cache responses in a memory store" do
@@ -173,7 +175,7 @@ describe "CachedResource::Configuration" do
     it "should have the default options for anything unspecified" do
       cr = Foo.cached_resource
       cr.cache.class.should == ActiveSupport::Cache::MemoryStore
-      cr.logger.class.should == ActiveSupport::BufferedLogger
+      cr.logger.class.should == default_logger
       cr.enabled.should == true
       cr.collection_synchronize.should == false
       cr.collection_arguments.should == [:all]
