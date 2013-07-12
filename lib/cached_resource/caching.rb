@@ -22,6 +22,11 @@ module CachedResource
         should_reload ? find_via_reload(key, *arguments) : find_via_cache(key, *arguments)
       end
 
+      # Clear the cache.
+      def clear_cache
+        cache_clear
+      end
+
       private
 
       # Try to find a cached response for the given key.  If
@@ -95,6 +100,13 @@ module CachedResource
         result = cached_resource.cache.write(key, object, :expires_in => cached_resource.generate_ttl)
         result && cached_resource.logger.info("#{CachedResource::Configuration::LOGGER_PREFIX} WRITE #{key}")
         result
+      end
+
+      # Clear the cache.
+      def cache_clear
+        cached_resource.cache.clear.tap do |result|
+          cached_resource.logger.info("#{CachedResource::Configuration::LOGGER_PREFIX} CLEAR")
+        end
       end
 
       # Generate the request cache key.
