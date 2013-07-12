@@ -3,7 +3,7 @@ require 'spec_helper'
 describe "CachedResource::Configuration" do
 
   let(:configuration) { CachedResource::Configuration.new }
-  let(:default_logger) { ActiveSupport::BufferedLogger }
+  let(:default_logger) { defined?(ActiveSupport::Logger) ? ActiveSupport::Logger : ActiveSupport::BufferedLogger }
 
   describe "by default" do
     it "should be enabled" do
