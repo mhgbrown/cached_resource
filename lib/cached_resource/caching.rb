@@ -69,8 +69,7 @@ module CachedResource
         collection = cache_read(cache_key(cached_resource.collection_arguments))
 
         if collection && !updates.empty?
-          store = CachedResource::Configuration::ORDERED_HASH.new
-          index = collection.inject(store) { |hash, object| hash[object.send(primary_key)] = object; hash }
+          index = collection.inject({}) { |hash, object| hash[object.send(primary_key)] = object; hash }
           updates.each { |object| index[object.send(primary_key)] = object }
           cache_write(cache_key(cached_resource.collection_arguments), index.values)
         end
