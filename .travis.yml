@@ -1,8 +1,14 @@
 language: ruby
 rvm:
   - 1.9.2
-    gemfile: gemfiles/3_2.gemfile
   - 1.9.3
-    gemfile: Gemfile
   - 2.0.0
-    gemfile: Gemfile
+
+gemfile:
+  - gemfiles/Gemfile.rails-3.2.x
+
+matrix:
+  exclude:
+    - rvm: 1.9.2
+      gemfile: Gemfile
+
