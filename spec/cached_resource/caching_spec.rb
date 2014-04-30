@@ -36,6 +36,7 @@ describe CachedResource do
       ActiveResource::HttpMock.reset!
       ActiveResource::HttpMock.respond_to do |mock|
         mock.get "/things/1.json", {}, @thing_json
+        mock.get "/things/1.json?foo=bar", {}, @thing_json
         mock.get "/things/fded.json", {}, @string_thing_json
       end
     end
@@ -48,6 +49,11 @@ describe CachedResource do
     it "should cache a response for a string primary key" do
       result = Thing.find("fded")
       Thing.cached_resource.cache.read("thing/fded").should == result
+    end
+
+    it "should cache without whitespace in keys" do
+      result = Thing.find(1, :from => 'path', :params => { :foo => 'bar' })
+      Thing.cached_resource.cache.read('thing/1/{:from=>"path",:params=>{:foo=>"bar"}}').should == result
     end
 
     it "should empty the cache when clear_cache is called" do
