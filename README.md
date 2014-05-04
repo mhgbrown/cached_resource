@@ -104,6 +104,15 @@ If you need to clear the entire cache just do the following:
 
 	MyActiveResource.clear_cache
 
+---
+Sometimes you might have a case the resource pathing is non-unique per call. This can create a situation where your caching the same result for multiple calls:
+
+	MyActiveResource.find(:one, from: "/admin/shop.json")
+
+Since resources are cached with an argument based key, you may pass in extra data to be appended to the cache key:
+  
+	MyActiveResource.find(:one, from: "/admin/shop.json", uid: "unique value")
+  
 ## Testing
 	rake
 
