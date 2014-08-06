@@ -85,7 +85,7 @@ module CachedResource
       def cache_read(key)
         object = cached_resource.cache.read(key).try do |cache|
           if cache.is_a? Enumerable
-            cache.map { |record| full_dup(record) }
+            collection_parser.new(cache.map { |record| full_dup(record) })
           else
             full_dup(cache)
           end
