@@ -86,7 +86,7 @@ module CachedResource
         object = cached_resource.cache.read(key).try do |cache|
           if cache.is_a? Enumerable
             restored = cache.map { |record| full_dup(record) }
-            return restored unless respond_to?(:collection_parser)
+            next restored unless respond_to?(:collection_parser)
             collection_parser.new(restored)
           else
             full_dup(cache)
