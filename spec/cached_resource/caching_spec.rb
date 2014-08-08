@@ -153,6 +153,29 @@ describe CachedResource do
       result1.should_not be_frozen
     end
 
+    shared_examples "collection_return_type" do
+      if ActiveResource::VERSION::MAJOR >= 4
+        it "should return an ActiveResource::Collection" do
+          cached = Thing.cached_resource.cache.read("thing/all")
+          cached.should be_instance_of(ActiveResource::Collection)
+        end
+
+        it "should return an instance of the collection_parser" do
+          Thing.cached_resource.cache.clear
+          class CustomCollection < ActiveResource::Collection; end
+          Thing.collection_parser = CustomCollection
+          Thing.all
+          cached = Thing.cached_resource.cache.read("thing/all")
+          cached.should be_instance_of(CustomCollection)
+        end
+      else
+        it "should return an Array" do
+          cached = Thing.cached_resource.cache.read("thing/all")
+          cached.should be_instance_of(Array)
+        end
+      end
+    end
+
     shared_examples "collection_freezing" do
       it "should not return a frozen collection on first request" do
         Thing.cached_resource.cache.clear
@@ -220,6 +243,8 @@ describe CachedResource do
         # make a request for all things
         Thing.all
       end
+
+      include_examples "collection_return_type"
 
       include_examples "collection_freezing"
 
@@ -357,6 +382,8 @@ describe CachedResource do
         # make a request for all things
         Thing.all
       end
+
+      include_examples "collection_return_type"
 
       include_examples "collection_freezing"
 
