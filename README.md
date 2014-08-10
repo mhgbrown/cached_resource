@@ -16,6 +16,7 @@ CachedResource is designed to be framework agnostic, but will hook into Rails fo
 
 * 3.2.x
 * 4.0.0
+* 4.1.x
 
 ## Configuration
 **Set up CachedResource across all ActiveResources:**
