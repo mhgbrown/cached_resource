@@ -2,6 +2,10 @@ require 'spec_helper'
 
 describe CachedResource do
 
+  def read_from_cache(key)
+    Thing.send(:cache_read, key)
+  end
+
   before(:each) do
     class Thing < ActiveResource::Base
       self.site = "http://api.thing.com"
@@ -43,23 +47,24 @@ describe CachedResource do
 
     it "should cache a response" do
       result = Thing.find(1)
-      Thing.cached_resource.cache.read("thing/1").should == result
+
+      read_from_cache("thing/1").should == result
     end
 
     it "should cache a response for a string primary key" do
       result = Thing.find("fded")
-      Thing.cached_resource.cache.read("thing/fded").should == result
+      read_from_cache("thing/fded").should == result
     end
 
     it "should cache without whitespace in keys" do
       result = Thing.find(1, :from => 'path', :params => { :foo => 'bar' })
-      Thing.cached_resource.cache.read('thing/1/{:from=>"path",:params=>{:foo=>"bar"}}').should == result
+      read_from_cache('thing/1/{:from=>"path",:params=>{:foo=>"bar"}}').should == result
     end
 
     it "should empty the cache when clear_cache is called" do
       result = Thing.find(1)
       Thing.clear_cache
-      Thing.cached_resource.cache.read("thing/1").should == nil
+      read_from_cache("thing/1").should == nil
     end
 
     it "should cache a response with the same persistence" do
@@ -108,7 +113,7 @@ describe CachedResource do
       # make a request
       Thing.find(1)
       # get the cached result of the request
-      old_result = Thing.cached_resource.cache.read("thing/1")
+      old_result = read_from_cache("thing/1")
 
       # change the response
       ActiveResource::HttpMock.reset!
@@ -117,7 +122,7 @@ describe CachedResource do
       end
 
       Thing.find(1, :reload => true)
-      new_result = Thing.cached_resource.cache.read("thing/1")
+      new_result = read_from_cache("thing/1")
       # since active resources are equal if and only if they
       # are the same object or an instance of the same class,
       # not new?, and have the same id.
@@ -156,7 +161,7 @@ describe CachedResource do
     shared_examples "collection_return_type" do
       if ActiveResource::VERSION::MAJOR >= 4
         it "should return an ActiveResource::Collection" do
-          cached = Thing.cached_resource.cache.read("thing/all")
+          cached = read_from_cache("thing/all")
           cached.should be_instance_of(ActiveResource::Collection)
         end
 
@@ -165,12 +170,12 @@ describe CachedResource do
           class CustomCollection < ActiveResource::Collection; end
           Thing.collection_parser = CustomCollection
           Thing.all
-          cached = Thing.cached_resource.cache.read("thing/all")
+          cached = read_from_cache("thing/all")
           cached.should be_instance_of(CustomCollection)
         end
       else
         it "should return an Array" do
-          cached = Thing.cached_resource.cache.read("thing/all")
+          cached = read_from_cache("thing/all")
           cached.should be_instance_of(Array)
         end
       end
@@ -222,8 +227,8 @@ describe CachedResource do
     shared_examples "collection_cache_clearing" do
       it "should empty the cache when clear_cache is called" do
         Thing.clear_cache
-        Thing.cached_resource.cache.read("thing/all").should == nil
-        Thing.cached_resource.cache.read("thing/1").should == nil
+        read_from_cache("thing/all").should == nil
+        read_from_cache("thing/1").should == nil
       end
 
     end
@@ -254,8 +259,8 @@ describe CachedResource do
         # only the all request should have been made
         ActiveResource::HttpMock.requests.length.should == 1
         # the result should be cached with the appropriate key
-        Thing.cached_resource.cache.read("thing/1").should == result
-        Thing.cached_resource.cache.read("thing/fded").should == string_result
+        read_from_cache("thing/1").should == result
+        read_from_cache("thing/fded").should == string_result
       end
 
       include_examples "collection_cache_clearing"
@@ -274,11 +279,11 @@ describe CachedResource do
         Thing.all(:reload => true)
         # get the updated result, read from the cache
         result = Thing.find(1)
-        Thing.cached_resource.cache.read("thing/all")[0].should == result
-        Thing.cached_resource.cache.read("thing/all")[0].name.should == result.name
+        read_from_cache("thing/all")[0].should == result
+        read_from_cache("thing/all")[0].name.should == result.name
         string_result = Thing.find("fded")
-        Thing.cached_resource.cache.read("thing/all")[1].should == string_result
-        Thing.cached_resource.cache.read("thing/all")[1].name.should == string_result.name
+        read_from_cache("thing/all")[1].should == string_result
+        read_from_cache("thing/all")[1].name.should == string_result.name
       end
 
       it "should update the collection when an individual request is reloaded" do
@@ -291,11 +296,11 @@ describe CachedResource do
 
         # reload the individual
         result = Thing.find(1, :reload => true)
-        Thing.cached_resource.cache.read("thing/all")[0].should == result
-        Thing.cached_resource.cache.read("thing/all")[0].name.should == result.name
+        read_from_cache("thing/all")[0].should == result
+        read_from_cache("thing/all")[0].name.should == result.name
         string_result = Thing.find("fded", :reload => true)
-        Thing.cached_resource.cache.read("thing/all")[1].should == string_result
-        Thing.cached_resource.cache.read("thing/all")[1].name.should == string_result.name
+        read_from_cache("thing/all")[1].should == string_result
+        read_from_cache("thing/all")[1].name.should == string_result.name
       end
 
       it "should update both the collection and the member cache entries when a subset of the collection is retrieved" do
@@ -312,20 +317,20 @@ describe CachedResource do
         # make a request for a subset of the "mother" collection
         result = Thing.find(:all, :params => {:name => "Ari"})
         # the collection should be updated to reflect the server change
-        Thing.cached_resource.cache.read("thing/all")[0].should == result[0]
-        Thing.cached_resource.cache.read("thing/all")[0].name.should == result[0].name
+        read_from_cache("thing/all")[0].should == result[0]
+        read_from_cache("thing/all")[0].name.should == result[0].name
         # the individual should be updated to reflect the server change
-        Thing.cached_resource.cache.read("thing/1").should == result[0]
-        Thing.cached_resource.cache.read("thing/1").name.should == result[0].name
+        read_from_cache("thing/1").should == result[0]
+        read_from_cache("thing/1").name.should == result[0].name
 
         # make a request for a subset of the "mother" collection
         result = Thing.find(:all, :params => {:name => "Lon"})
         # the collection should be updated to reflect the server change
-        Thing.cached_resource.cache.read("thing/all")[1].should == result[0]
-        Thing.cached_resource.cache.read("thing/all")[1].name.should == result[0].name
+        read_from_cache("thing/all")[1].should == result[0]
+        read_from_cache("thing/all")[1].name.should == result[0].name
         # the individual should be updated to reflect the server change
-        Thing.cached_resource.cache.read("thing/fded").should == result[0]
-        Thing.cached_resource.cache.read("thing/fded").name.should == result[0].name
+        read_from_cache("thing/fded").should == result[0]
+        read_from_cache("thing/fded").name.should == result[0].name
       end
 
       it "should maintain the order of the collection when updating it" do
@@ -407,12 +412,12 @@ describe CachedResource do
         # reload the individual
         result = Thing.find(1, :reload => true)
         # the ids are the same, but the names should be different
-        Thing.cached_resource.cache.read("thing/all")[0].name.should_not == result.name
+        read_from_cache("thing/all")[0].name.should_not == result.name
 
         # reload the individual
         string_result = Thing.find("fded", :reload => true)
         # the ids are the same, but the names should be different
-        Thing.cached_resource.cache.read("thing/all")[1].name.should_not == string_result.name
+        read_from_cache("thing/all")[1].name.should_not == string_result.name
       end
     end
 
@@ -452,12 +457,12 @@ describe CachedResource do
 
     it "should cache a response" do
       result = Thing.find(1)
-      Thing.cached_resource.cache.read("thing/1").should == result
+      read_from_cache("thing/1").should == result
     end
 
     it "should cache a response for a string primary key" do
       result = Thing.find("fded")
-      Thing.cached_resource.cache.read("thing/fded").should == result
+      read_from_cache("thing/fded").should == result
     end
 
     it "should always remake the request" do
@@ -476,7 +481,7 @@ describe CachedResource do
 
     it "should rewrite the cache for each request" do
       Thing.find(1)
-      old_result = Thing.cached_resource.cache.read("thing/1")
+      old_result = read_from_cache("thing/1")
 
       # change the response
       ActiveResource::HttpMock.reset!
@@ -485,7 +490,7 @@ describe CachedResource do
       end
 
       Thing.find(1)
-      new_result = Thing.cached_resource.cache.read("thing/1")
+      new_result = read_from_cache("thing/1")
       # since active resources are equal if and only if they
       # are the same object or an instance of the same class,
       # not new?, and have the same id.
@@ -494,7 +499,7 @@ describe CachedResource do
 
     it "should rewrite the cache for each request for a string primary key" do
       Thing.find("fded")
-      old_result = Thing.cached_resource.cache.read("thing/fded")
+      old_result = read_from_cache("thing/fded")
 
       # change the response
       ActiveResource::HttpMock.reset!
@@ -503,7 +508,7 @@ describe CachedResource do
       end
 
       Thing.find("fded")
-      new_result = Thing.cached_resource.cache.read("thing/fded")
+      new_result = read_from_cache("thing/fded")
       # since active resources are equal if and only if they
       # are the same object or an instance of the same class,
       # not new?, and have the same id.

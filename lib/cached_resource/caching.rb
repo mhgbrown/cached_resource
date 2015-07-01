@@ -83,7 +83,8 @@ module CachedResource
 
       # Read a entry from the cache for the given key.
       def cache_read(key)
-        object = cached_resource.cache.read(key).try do |cache|
+        object = cached_resource.cache.read(key).try do |json_cache|
+          cache = json_to_object(JSON.parse(json_cache))
           if cache.is_a? Enumerable
             restored = cache.map { |record| full_dup(record) }
             next restored unless respond_to?(:collection_parser)
@@ -98,7 +99,7 @@ module CachedResource
 
       # Write an entry to the cache for the given key and value.
       def cache_write(key, object)
-        result = cached_resource.cache.write(key, object, :expires_in => cached_resource.generate_ttl)
+        result = cached_resource.cache.write(key, object.to_json, :expires_in => cached_resource.generate_ttl)
         result && cached_resource.logger.info("#{CachedResource::Configuration::LOGGER_PREFIX} WRITE #{key}")
         result
       end
@@ -120,6 +121,14 @@ module CachedResource
       def full_dup(record)
         record.dup.tap do |o|
           o.instance_variable_set(:@persisted, record.persisted?)
+        end
+      end
+
+      def json_to_object(json)
+        if json.is_a? Array
+          json.map { |attrs| self.new(attrs) }
+        else
+          self.new(json)
         end
       end
 
