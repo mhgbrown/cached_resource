@@ -56,6 +56,14 @@ describe CachedResource do
       Thing.cached_resource.cache.read('thing/1/{:from=>"path",:params=>{:foo=>"bar"}}').should == result
     end
 
+    it "should hash long parameters in cache key" do
+      params = [1, {long_params: "l" * Thing::MAX_ARGUMENTS_CACHE_SIZE }]
+      hash_params = Thing.send(:hash_string, params.join("/"))
+
+      result = Thing.find(*params)
+      Thing.cached_resource.cache.read("thing/#{hash_params}").should == result
+    end
+
     it "should empty the cache when clear_cache is called" do
       result = Thing.find(1)
       Thing.clear_cache
@@ -510,4 +518,5 @@ describe CachedResource do
       new_result.name.should_not == old_result.name
     end
   end
+
 end
