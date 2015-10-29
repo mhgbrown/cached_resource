@@ -29,6 +29,7 @@ module CachedResource
     def initialize(options={})
       super({
         :enabled => true,
+        :race_condition_ttl => 604800,
         :ttl => 604800,
         :ttl_randomization => false,
         :ttl_randomization_scale => 1..2,
