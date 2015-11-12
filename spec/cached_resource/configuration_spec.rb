@@ -186,7 +186,7 @@ describe "CachedResource::Configuration" do
       cr.custom.should == nil
       cr.ttl_randomization.should == false
       cr.ttl_randomization_scale.should == (1..2)
-      expect(cr.race_condition_ttl).to eq(5)
+      expect(cr.race_condition_ttl).to eq(86400)
     end
 
   end
