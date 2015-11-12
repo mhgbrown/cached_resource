@@ -46,7 +46,7 @@ module CachedResource
             cache_read(key)
           rescue ThreadError
           end
-        end
+        end.join
         object
       end
 
