@@ -36,6 +36,7 @@ CachedResource accepts the following options:
 
 * `:enabled` Default: `true`
 * `:ttl` The time in seconds until the cache should expire. Default: `604800`
+* `:race_condition_ttl` The race condition ttl, to prevent `dog pile effect(https://en.wikipedia.org/wiki/Cache_stampede)` or `cache stampede(https://en.wikipedia.org/wiki/Cache_stampede)`. Default: 86400
 * `:ttl_randomization` Enable ttl randomization. Default: `false`
 * `:ttl_randomization_scale` A Range from which a random value will be selected to scale the ttl. Default: `1..2`
 * `:collection_synchronize` Use collections to generate cache entries for individuals.  Update the existing cached principal collection when retrieving subsets of the principal collection or individuals.  Default: `false`

@@ -98,7 +98,7 @@ module CachedResource
 
       # Write an entry to the cache for the given key and value.
       def cache_write(key, object)
-        result = cached_resource.cache.write(key, object, :expires_in => cached_resource.generate_ttl)
+        result = cached_resource.cache.write(key, object, :race_condition_ttl => cached_resource.race_condition_ttl, :expires_in => cached_resource.generate_ttl)
         result && cached_resource.logger.info("#{CachedResource::Configuration::LOGGER_PREFIX} WRITE #{key}")
         result
       end
