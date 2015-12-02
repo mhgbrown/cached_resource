@@ -7,7 +7,7 @@ CachedResource is a Ruby gem whose goal is to increase the performance of intera
 ## Compatibility
 CachedResource supports the following Ruby versions:
 
-* 1.9.2, 1.9.3
+* 1.9.3
 * 2.0.0, 2.1.0, 2.2.3
 
 If you require 1.8.7 support, please use version 2.3.4.
@@ -112,9 +112,9 @@ Sometimes you might have a case the resource pathing is non-unique per call. Thi
 	MyActiveResource.find(:one, from: "/admin/shop.json")
 
 Since resources are cached with an argument based key, you may pass in extra data to be appended to the cache key:
-  
+
 	MyActiveResource.find(:one, from: "/admin/shop.json", uid: "unique value")
-  
+
 ## Testing
 	rake
 
