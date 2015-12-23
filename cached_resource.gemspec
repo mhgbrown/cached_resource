@@ -16,10 +16,10 @@ Gem::Specification.new do |s|
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
 
-  s.add_dependency "rake"
-  s.add_dependency "activeresource", ">= 3.2"
-  s.add_dependency "activesupport", ">= 3.2"
-  s.add_dependency "nilio", ">= 1.0"
+  s.add_runtime_dependency "rake"
+  s.add_runtime_dependency "activeresource", ">= 3.2"
+  s.add_runtime_dependency "activesupport", ">= 3.2"
+  s.add_runtime_dependency "nilio", ">= 1.0"
 
   s.add_development_dependency "rspec"
 end
