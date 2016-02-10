@@ -20,6 +20,7 @@ module CachedResource
     # defaults. The following options exist for cached resource:
     # :enabled, default: true
     # :ttl, default: 604800
+    # :race_condition_ttl: 86400
     # :ttl_randomization, default: false,
     # :ttl_randomization_scale, default: 1..2,
     # :collection_synchronize, default: false,
@@ -29,6 +30,7 @@ module CachedResource
     def initialize(options={})
       super({
         :enabled => true,
+        :race_condition_ttl => 86400,
         :ttl => 604800,
         :ttl_randomization => false,
         :ttl_randomization_scale => 1..2,
