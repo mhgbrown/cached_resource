@@ -135,6 +135,10 @@ module CachedResource
 
       def preserve_prefix_options(object)
         if object.is_a? ActiveResource::Collection
+          object.elements = object.map do |item|
+            self.new(item.attributes.merge!(item.prefix_options))
+          end
+        elsif object.is_a? Array
           object.map do |item|
             self.new(item.attributes.merge!(item.prefix_options))
           end
