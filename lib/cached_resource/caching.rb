@@ -99,6 +99,7 @@ module CachedResource
 
       # Write an entry to the cache for the given key and value.
       def cache_write(key, object)
+        preserve_prefix_options(object)
         result = cached_resource.cache.write(key, object.to_json, :race_condition_ttl => cached_resource.race_condition_ttl, :expires_in => cached_resource.generate_ttl)
         result && cached_resource.logger.info("#{CachedResource::Configuration::LOGGER_PREFIX} WRITE #{key}")
         result
@@ -129,6 +130,16 @@ module CachedResource
           json.map { |attrs| self.new(attrs) }
         else
           self.new(json)
+        end
+      end
+
+      def preserve_prefix_options(object)
+        if object.is_a? ActiveResource::Collection
+          object.map do |item|
+            self.new(item.attributes.merge!(item.prefix_options))
+          end
+        else
+          self.new(object.attributes.merge(object.prefix_options))
         end
       end
 
