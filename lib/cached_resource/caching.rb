@@ -6,7 +6,8 @@ module CachedResource
 
     included do
       class << self
-        alias_method_chain :find, :cache
+        alias_method :find_without_cache, :find
+        alias_method :find, :find_with_cache      
       end
     end
 
