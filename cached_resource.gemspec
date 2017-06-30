@@ -22,4 +22,5 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "nilio", ">= 1.0"
 
   s.add_development_dependency "rspec"
+  s.add_development_dependency "appraisal"
 end
