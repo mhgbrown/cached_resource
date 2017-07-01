@@ -6,12 +6,8 @@ module CachedResource
     # default or fallback cache without rails
     CACHE = ActiveSupport::Cache::MemoryStore.new
 
-    # default of fallback logger without rails
-    LOGGER = if defined?(ActiveSupport::Logger)
-        ActiveSupport::Logger.new(NilIO.instance)
-    else
-        ActiveSupport::BufferedLogger.new(NilIO.instance)
-    end
+    # default or fallback logger without rails
+    LOGGER = ActiveSupport::Logger.new(NilIO.instance)
 
     # prefix for log messages
     LOGGER_PREFIX = "[cached_resource]"
@@ -26,7 +22,7 @@ module CachedResource
     # :collection_synchronize, default: false,
     # :collection_arguments, default: [:all]
     # :cache, default: Rails.cache or ActiveSupport::Cache::MemoryStore.new,
-    # :logger, default: Rails.logger or ActiveSupport::BufferedLogger.new(NilIO.new)
+    # :logger, default: Rails.logger or ActiveSupport::Logger.new(NilIO.new)
     def initialize(options={})
       super({
         :enabled => true,
