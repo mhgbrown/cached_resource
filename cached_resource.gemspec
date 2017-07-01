@@ -10,6 +10,7 @@ Gem::Specification.new do |s|
   s.homepage    = "https://github.com/mhgbrown/cached_resource"
   s.summary     = %q{Caching for ActiveResource}
   s.description = %q{Enables request-based caching for ActiveResource}
+  s.licenses    = ['MIT']
 
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
