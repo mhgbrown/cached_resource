@@ -31,8 +31,8 @@ module CachedResource
       # self.cached_resource = CachedResource::Configuration.new(options={})
       def inherited(child)
         child.cached_resource = self.cached_resource if defined?(@cached_resource)
+        super
       end
     end
-
   end
 end
