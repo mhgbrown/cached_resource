@@ -127,13 +127,3 @@ Since resources are cached with an argument based key, you may pass in extra dat
 
 ## Feedback/Problems
 Feedback is greatly appreciated! Check out this project's [issue tracker](https://github.com/Ahsizara/cached_resource/issues) if you've got anything to say.
-
-## Future Considerations
-This may change at any time.
-
-* Callbacks on before and after reload
-* Consider checksums to improve the determination of freshness/changédness
-
-
-
-
