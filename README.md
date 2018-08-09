@@ -121,6 +121,12 @@ Since resources are cached with an argument based key, you may pass in extra dat
 ## Testing
 	rake
 
+or to test all supported environments
+
+	bundle exec appraisal rake
+
+For more details, head over to the [appraisal](https://github.com/thoughtbot/appraisal) documentation.
+
 ## Credit/Inspiration
 * quamen and [this gist](http://gist.github.com/947734)
 * latimes and [this plugin](http://github.com/latimes/cached_resource)

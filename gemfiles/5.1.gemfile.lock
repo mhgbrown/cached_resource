@@ -1,7 +1,7 @@
 PATH
   remote: ../
   specs:
-    cached_resource (5.0.1)
+    cached_resource (5.1.0)
       activeresource (>= 4.0)
       activesupport (>= 4.0)
       nilio (>= 1.0)
