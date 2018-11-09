@@ -69,6 +69,7 @@ describe CachedResource do
 
     it "should cache a response with the same persistence" do
       result1 = Thing.find(1)
+      result1.persisted?.should be true
       result2 = Thing.find(1)
       result1.persisted?.should == result2.persisted?
     end
