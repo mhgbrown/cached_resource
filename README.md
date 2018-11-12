@@ -154,7 +154,13 @@ MyActiveResource.find(:one, from: "/admin/shop.json", uid: "unique value")
 rake
 ```
 
-or to test all supported environments
+or to test all supported environments, make sure appraisal is setup
+
+```ruby
+bundle exec appraisal install
+```
+
+and then run
 
 ```ruby
 bundle exec appraisal rake
