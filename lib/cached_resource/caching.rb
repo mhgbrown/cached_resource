@@ -1,5 +1,3 @@
-require 'pry'
-
 module CachedResource
   # The Caching module is included in ActiveResource and
   # handles caching and recaching of responses.
