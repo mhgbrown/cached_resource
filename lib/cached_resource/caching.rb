@@ -1,3 +1,5 @@
+require 'pry'
+
 module CachedResource
   # The Caching module is included in ActiveResource and
   # handles caching and recaching of responses.
@@ -85,7 +87,9 @@ module CachedResource
       # Read a entry from the cache for the given key.
       def cache_read(key)
         object = cached_resource.cache.read(key).try do |json_cache|
-          json = JSON.parse(json_cache, :symbolize_names => true)
+
+          # In older version JSON can't deserialize 'null' to nil
+          json = json_cache == 'null' ? nil : JSON.parse(json_cache, :symbolize_names => true)
 
           unless json.nil?
             cache = json_to_object(json)
