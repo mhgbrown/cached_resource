@@ -19,10 +19,12 @@ describe CachedResource do
     @thing3 = {:thing => {:id => 3, :name => "Stu"}}
     @string_thing = {:thing => {:id => "fded", :name => "Lev"}}
     @other_string_thing = {:thing => {:id => "fded", :name => "Lon"}}
+    @date_thing = {:thing => {:id => 4, :created_at => Time.utc(2020).iso8601}}
     @thing_json = @thing.to_json
     @other_thing_json = @other_thing.to_json
     @string_thing_json = @string_thing.to_json
     @other_string_thing_json = @other_string_thing.to_json
+    @date_thing_json = @date_thing.to_json
     @nil_thing = nil.to_json
   end
 
@@ -44,6 +46,7 @@ describe CachedResource do
         mock.get "/things/1.json?foo=bar", {}, @thing_json
         mock.get "/things/fded.json", {}, @string_thing_json
         mock.get "/things.json?name=42", {}, @nil_thing, 404
+        mock.get "/things/4.json", {}, @date_thing_json
       end
     end
 
@@ -164,6 +167,19 @@ describe CachedResource do
       result1 = Thing.find(1)
       result2 = Thing.find(1)
       result1.should_not be_frozen
+    end
+
+    describe "when ActiveSupport.parse_json_times is enabled" do
+      before(:all) do
+        Time.zone = 'UTC'
+        ActiveSupport.parse_json_times = true
+      end
+
+      it "should convert date times to objects when reading from cache" do
+        Thing.find(4)
+
+        read_from_cache("thing/4").created_at.should == @date_thing[:thing][:created_at]
+      end
     end
 
     shared_examples "collection_return_type" do
