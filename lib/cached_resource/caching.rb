@@ -86,8 +86,7 @@ module CachedResource
       def cache_read(key)
         object = cached_resource.cache.read(key).try do |json_cache|
 
-          # In older version JSON can't deserialize 'null' to nil
-          json = json_cache == 'null' ? nil : JSON.parse(json_cache, :symbolize_names => true)
+          json = ActiveSupport::JSON.decode(json_cache)
 
           unless json.nil?
             cache = json_to_object(json)
@@ -134,9 +133,9 @@ module CachedResource
       def json_to_object(json)
         if json.is_a? Array
           json.map { |attrs|
-            self.new(attrs[:object], attrs[:persistence]) }
+            self.new(attrs["object"], attrs["persistence"]) }
         else
-          self.new(json[:object], json[:persistence])
+          self.new(json["object"], json["persistence"])
         end
       end
 
