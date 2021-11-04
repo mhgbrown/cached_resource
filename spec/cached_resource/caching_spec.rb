@@ -12,6 +12,11 @@ describe CachedResource do
       cached_resource
     end
 
+    class NotTheThing < ActiveResource::Base
+      self.site = "http://api.notthething.com"
+      cached_resource
+    end
+
     @thing = {:thing => {:id => 1, :name => "Ada"}}
     @other_thing = {:thing => {:id => 1, :name => "Ari"}}
     @thing2 = {:thing => {:id => 2, :name => "Joe"}}
@@ -26,11 +31,15 @@ describe CachedResource do
     @other_string_thing_json = @other_string_thing.to_json
     @date_thing_json = @date_thing.to_json
     @nil_thing = nil.to_json
+    @not_the_thing = {:not_the_thing => {:id => 1, :name => "Not"}}
+    @not_the_thing_json = @not_the_thing.to_json
   end
 
   after(:each) do
     Thing.cached_resource.cache.clear
     Object.send(:remove_const, :Thing)
+    NotTheThing.cached_resource.cache.clear
+    Object.send(:remove_const, :NotTheThing)
   end
 
   describe "when enabled" do
@@ -39,6 +48,8 @@ describe CachedResource do
       # to make sure it works
       Thing.cached_resource.cache.clear
       Thing.cached_resource.on!
+      NotTheThing.cached_resource.cache.clear
+      NotTheThing.cached_resource.on!
 
       ActiveResource::HttpMock.reset!
       ActiveResource::HttpMock.respond_to do |mock|
@@ -47,6 +58,7 @@ describe CachedResource do
         mock.get "/things/fded.json", {}, @string_thing_json
         mock.get "/things.json?name=42", {}, @nil_thing, 404
         mock.get "/things/4.json", {}, @date_thing_json
+        mock.get "/not_the_things/1.json", {}, @not_the_thing_json
       end
     end
 
@@ -75,6 +87,20 @@ describe CachedResource do
       result = Thing.find(1)
       Thing.clear_cache
       read_from_cache("thing/1").should == nil
+    end
+
+    it "should not empty the cache of NotTheThing when clear_cache is called on the Thing" do
+      result1 = Thing.find(1)
+      result2 = NotTheThing.find(1)
+      Thing.clear_cache
+      NotTheThing.send(:cache_read, 'notthething/1').should == result2
+    end
+
+    it "should empty all the cache when clear_cache is called on the Thing with :all option set" do
+      result1 = Thing.find(1)
+      result2 = NotTheThing.find(1)
+      Thing.clear_cache(all: true)
+      NotTheThing.send(:cache_read, 'notthething/1').should == nil
     end
 
     it "should cache a response with the same persistence" do

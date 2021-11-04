@@ -24,8 +24,8 @@ module CachedResource
       end
 
       # Clear the cache.
-      def clear_cache
-        cache_clear
+      def clear_cache(options=nil)
+        cache_clear(options)
       end
 
       private
@@ -111,15 +111,26 @@ module CachedResource
       end
 
       # Clear the cache.
-      def cache_clear
-        cached_resource.cache.clear.tap do |result|
-          cached_resource.logger.info("#{CachedResource::Configuration::LOGGER_PREFIX} CLEAR")
+      def cache_clear(options=nil)
+        # Memcache doesn't support delete_matched, which can also be computationally expensive
+        if cached_resource.cache.class.to_s == 'ActiveSupport::Cache::MemCacheStore' || options.try(:fetch,:all)
+          cached_resource.cache.clear.tap do |result|
+            cached_resource.logger.info("#{CachedResource::Configuration::LOGGER_PREFIX} CLEAR ALL")
+          end
+        else
+          cached_resource.cache.delete_matched("^#{name_key}/*").tap do |result|
+            cached_resource.logger.info("#{CachedResource::Configuration::LOGGER_PREFIX} CLEAR #{name_key}/*")
+          end
         end
       end
 
       # Generate the request cache key.
       def cache_key(*arguments)
-        "#{name.parameterize.gsub("-", "/")}/#{arguments.join('/')}".downcase.delete(' ')
+        "#{name_key}/#{arguments.join('/')}".downcase.delete(' ')
+      end
+
+      def name_key
+        name.parameterize.gsub("-", "/")
       end
 
       # Make a full duplicate of an ActiveResource record.
