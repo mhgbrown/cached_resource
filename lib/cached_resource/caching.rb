@@ -17,6 +17,7 @@ module CachedResource
       def find_with_cache(*arguments)
         arguments << {} unless arguments.last.is_a?(Hash)
         should_reload = arguments.last.delete(:reload) || !cached_resource.enabled
+        should_reload = true if !cached_resource.cache_collections && is_any_collection?(*arguments)
         arguments.pop if arguments.last.empty?
         key = cache_key(arguments)
 
@@ -41,6 +42,7 @@ module CachedResource
       def find_via_reload(key, *arguments)
         object = find_without_cache(*arguments)
         cache_collection_synchronize(object, *arguments) if cached_resource.collection_synchronize
+        return object if !cached_resource.cache_collections && is_any_collection?(*arguments)
         cache_write(key, object)
         cache_read(key)
       end
@@ -80,6 +82,12 @@ module CachedResource
       # the entire collection of objects.
       def is_collection?(*arguments)
         arguments == cached_resource.collection_arguments
+      end
+
+      # Determine if the given arguments represent
+      # any collection of objects
+      def is_any_collection?(*arguments)
+        cached_resource.collection_arguments.all?{ |arg| arguments.include?(arg) } || arguments.include?(:all)
       end
 
       # Read a entry from the cache for the given key.

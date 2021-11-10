@@ -22,6 +22,10 @@ describe "CachedResource::Configuration" do
       configuration.collection_arguments.should == [:all]
     end
 
+    it "should cache collections" do
+      configuration.cache_collections == true
+    end
+
     describe "outside a Rails environment" do
       it "should be logging to a buffered logger attached to a NilIO" do
         configuration.logger.class.should == default_logger
@@ -72,7 +76,8 @@ describe "CachedResource::Configuration" do
                         :enabled => false,
                         :collection_synchronize => true,
                         :collection_arguments => [:every],
-                        :custom => "irrelevant"
+                        :custom => "irrelevant",
+                        :cache_collections => true
       end
     end
 
@@ -90,6 +95,7 @@ describe "CachedResource::Configuration" do
       cr.collection_synchronize.should == true
       cr.collection_arguments.should == [:every]
       cr.custom.should == "irrelevant"
+      cr.cache_collections.should == true
     end
   end
 
@@ -130,7 +136,8 @@ describe "CachedResource::Configuration" do
                         :enabled => false,
                         :collection_synchronize => true,
                         :collection_arguments => [:every],
-                        :custom => "irrelevant"
+                        :custom => "irrelevant",
+                        :cache_collections => true
       end
 
       class Foo < Bar
@@ -158,7 +165,8 @@ describe "CachedResource::Configuration" do
                         :enabled => false,
                         :collection_synchronize => true,
                         :collection_arguments => [:every],
-                        :custom => "irrelevant"
+                        :custom => "irrelevant",
+                        :cache_collections => true
       end
 
       class Foo < Bar
@@ -186,6 +194,7 @@ describe "CachedResource::Configuration" do
       cr.custom.should == nil
       cr.ttl_randomization.should == false
       cr.ttl_randomization_scale.should == (1..2)
+      cr.cache_collections.should == true
       expect(cr.race_condition_ttl).to eq(86400)
     end
 
