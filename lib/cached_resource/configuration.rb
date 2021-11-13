@@ -22,7 +22,8 @@ module CachedResource
     # :collection_synchronize, default: false,
     # :collection_arguments, default: [:all]
     # :cache, default: Rails.cache or ActiveSupport::Cache::MemoryStore.new,
-    # :logger, default: Rails.logger or ActiveSupport::Logger.new(NilIO.new)
+    # :logger, default: Rails.logger or ActiveSupport::Logger.new(NilIO.new),
+    # :cache_collections, default: true
     def initialize(options={})
       super({
         :enabled => true,
@@ -33,7 +34,8 @@ module CachedResource
         :collection_synchronize => false,
         :collection_arguments => [:all],
         :cache => defined?(Rails.cache)  && Rails.cache || CACHE,
-        :logger => defined?(Rails.logger) && Rails.logger || LOGGER
+        :logger => defined?(Rails.logger) && Rails.logger || LOGGER,
+        :cache_collections => true
       }.merge(options))
     end
 

@@ -565,4 +565,37 @@ describe CachedResource do
       new_result.name.should_not == old_result.name
     end
   end
+
+  describe "when cache_collections is disabled" do
+    before(:each) do
+      Thing.cached_resource.cache.clear
+      Thing.cached_resource.cache_collections = false
+
+      ActiveResource::HttpMock.reset!
+      ActiveResource::HttpMock.respond_to do |mock|
+        mock.get "/things.json", {}, [@thing[:thing],@string_thing[:thing]].to_json(:root => :thing)
+        mock.get "/things/1.json", {}, @thing_json
+        mock.get "/things/fded.json", {}, @string_thing_json
+      end
+    end
+
+    it "should cache a response" do
+      result = Thing.find(1)
+      read_from_cache("thing/1").should == result
+    end
+
+    it "should not remake a single request" do
+      result = Thing.find(1)
+      ActiveResource::HttpMock.requests.length.should == 1
+      result = Thing.find(1)
+      ActiveResource::HttpMock.requests.length.should == 1
+    end
+
+    it "should always remake the request for collections" do
+      Thing.all
+      ActiveResource::HttpMock.requests.length.should == 1
+      Thing.all
+      ActiveResource::HttpMock.requests.length.should == 2
+    end
+  end
 end
