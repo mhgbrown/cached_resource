@@ -24,7 +24,7 @@ describe CachedResource do
     @thing3 = {:thing => {:id => 3, :name => "Stu"}}
     @string_thing = {:thing => {:id => "fded", :name => "Lev"}}
     @other_string_thing = {:thing => {:id => "fded", :name => "Lon"}}
-    @date_thing = {:thing => {:id => 4, :created_at => Time.utc(2020).iso8601}}
+    @date_thing = {:thing => {:id => 4, :created_at => DateTime.new(2020)}}
     @thing_json = @thing.to_json
     @other_thing_json = @other_thing.to_json
     @string_thing_json = @string_thing.to_json
