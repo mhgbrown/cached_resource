@@ -8,8 +8,25 @@ rvm:
   - 2.2.4
   - 2.3.4
   - 2.4.1
+  - 2.5.8
 
 gemfile:
   - gemfiles/4.2.gemfile
   - gemfiles/5.0.gemfile
   - gemfiles/5.1.gemfile
+  - gemfiles/6.0.gemfile
+  - gemfiles/6.1.gemfile
+
+exclude:
+  - rvm: 2.2.4
+    gemfile: gemfiles/6.0.gemfile
+  - rvm: 2.3.4
+    gemfile: gemfiles/6.0.gemfile
+  - rvm: 2.4.1
+    gemfile: gemfiles/6.0.gemfile
+  - rvm: 2.2.4
+    gemfile: gemfiles/6.1.gemfile
+  - rvm: 2.3.4
+    gemfile: gemfiles/6.1.gemfile
+  - rvm: 2.4.1
+    gemfile: gemfiles/6.1.gemfile
