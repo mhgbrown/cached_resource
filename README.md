@@ -1,4 +1,4 @@
-# CachedResource [![Build Status](https://travis-ci.org/mhgbrown/cached_resource.svg?branch=master)](http://travis-ci.org/mhgbrown/cached_resource)
+# CachedResource [![Build Status](https://app.travis-ci.com/mhgbrown/cached_resource.svg?branch=master)](https://app.travis-ci.com/github/mhgbrown/cached_resource)
 CachedResource is a Ruby gem whose goal is to increase the performance of interacting with web services via ActiveResource by caching responses based on request parameters.  It can help reduce the lag created by making repeated requests across a network.
 
 ## Installation
