@@ -13,6 +13,8 @@ CachedResource supports the following Ruby versions:
 * 2.2.x
 * 2.3.x
 * 2.4.x
+* 2.5.x
+* 2.7.x
 
 ...and likely other modern Ruby versions. If you require 1.8.7 support, please use version 2.3.4.
 
@@ -21,6 +23,9 @@ CachedResource is designed to be framework agnostic, but will hook into Rails fo
 * 4.2.x
 * 5.0.x
 * 5.1.x
+* 6.0.x
+* 6.1.x
+* 7.0.x
 
 For previously supported versions, use 4.2.0 or below.
 
