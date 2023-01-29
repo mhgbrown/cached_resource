@@ -6,9 +6,6 @@ puts "\e[93mUsing TEST_RAILS_VERSION #{ENV['TEST_RAILS_VERSION']}\e[0m"
 case ENV['TEST_RAILS_VERSION']
 when "4.2"
   # gem "activesupport", "~>4.2.0"
-  # Fixes undefined method `new' for BigDecimal:Class for newer Rubies
-  puts "\e[93mUsing big decimal\e[0m"
-  gem "bigdecimal", "1.3.5"
   gem "activeresource"
   gem "activesupport", "~>4.2.0"
 when "5.0"

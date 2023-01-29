@@ -61,6 +61,9 @@ jobs:
             rails-version: '7.0'
           - ruby-version: '2.5'
             rails-version: '7.0'
+          # incompatbility with BigDecimal.new
+          - ruby-version: '2.7'
+            rails-version: '4.2'
 
     steps:
       - uses: actions/checkout@v3
