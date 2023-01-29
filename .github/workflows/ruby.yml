@@ -23,8 +23,8 @@ jobs:
         rails-version: ['4.2', '5.0', '5.1', '6.0', '6.1', '7.0']
         exclude:
           # Segmentation fault during tests, but should work?
-          - ruby-version: '2.2'
-            rails-version: '5.1'
+          # - ruby-version: '2.2'
+          #   rails-version: '5.1'
           - ruby-version: '1.9'
             rails-version: '5.0'
           - ruby-version: '1.9'
@@ -34,6 +34,31 @@ jobs:
           - ruby-version: '1.9'
             rails-version: '6.1'
           - ruby-version: '1.9'
+            rails-version: '7.0'
+          # activesupport (~> 6.0.0) was resolved to 6.0.6.1, which depends on ruby (>= 2.5.0)
+          # activesupport (~> 6.1.0) was resolved to 6.1.7.2, which depends on ruby (>= 2.5.0)
+          - ruby-version: '2.2'
+            rails-version: '6.0'
+          - ruby-version: '2.2'
+            rails-version: '6.1'
+          - ruby-version: '2.3'
+            rails-version: '6.0'
+          - ruby-version: '2.3'
+            rails-version: '6.0'
+          - ruby-version: '2.3'
+            rails-version: '6.1'
+          - ruby-version: '2.4'
+            rails-version: '6.0'
+          - ruby-version: '2.4'
+            rails-version: '6.1'
+          # activesupport (~> 7.0.0) was resolved to 7.0.4.2, which depends on Ruby (>= 2.7.0)
+          - ruby-version: '2.2'
+            rails-version: '7.0'
+          - ruby-version: '2.3'
+            rails-version: '7.0'
+          - ruby-version: '2.4'
+            rails-version: '7.0'
+          - ruby-version: '2.5'
             rails-version: '7.0'
 
     steps:
