@@ -17,40 +17,13 @@ Gem::Specification.new do |s|
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
 
-  puts ENV['TEST_RAILS_VERSION']
-  case ENV['TEST_RAILS_VERSION']
-  when "4.2"
-    # gem "activesupport", "~>4.2.0"
-    s.add_runtime_dependency "activeresource"
-    s.add_runtime_dependency "activesupport", "~>4.2.0"
-  when "5.0"
-    # gem "activesupport", "~>5.0.0"
-    s.add_runtime_dependency "activeresource"
-    s.add_runtime_dependency "activesupport", "~>5.0.0"
-  when "5.1"
-    # gem "activesupport", "~>5.1.0"
-    s.add_runtime_dependency "activeresource"
-    s.add_runtime_dependency "activesupport", "~>5.1.0"
-  when "6.0"
-    # gem "activesupport", "~>6.0.0"
-    s.add_runtime_dependency "activeresource"
-    s.add_runtime_dependency "activesupport", "~>6.0.0"
-  when "6.1"
-    # gem "activesupport", "~>6.1.0"
-    s.add_runtime_dependency "activeresource"
-    s.add_runtime_dependency "activesupport", "~>6.1.0"
-  when "7.0"
-    # gem "activesupport", "~>7.0.0"
-    s.add_runtime_dependency "activeresource"
-    s.add_runtime_dependency "activesupport", "~>7.0.0"
-  else
-    s.add_runtime_dependency "activeresource", ">= 4.0"
-    s.add_runtime_dependency "activesupport", ">= 4.0"
-  end
-
+  s.add_runtime_dependency "activeresource", ">= 4.0"
+  s.add_runtime_dependency "activesupport", ">= 4.0"
   s.add_runtime_dependency "nilio", ">= 1.0"
 
   s.add_development_dependency "rake"
   s.add_development_dependency "rspec"
   s.add_development_dependency "appraisal"
+
+  s.extensions = ['ext/mkrf_conf.rb']
 end
