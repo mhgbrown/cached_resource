@@ -17,6 +17,7 @@ Gem::Specification.new do |s|
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
 
+  puts ENV['TEST_RAILS_VERSION']
   case ENV['TEST_RAILS_VERSION']
   when "4.2"
     # gem "activesupport", "~>4.2.0"
