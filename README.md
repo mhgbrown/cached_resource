@@ -10,6 +10,7 @@ gem install cached_resource
 ## Compatibility
 CachedResource supports the following Ruby versions:
 
+* 1.9.x
 * 2.2.x
 * 2.3.x
 * 2.4.x
