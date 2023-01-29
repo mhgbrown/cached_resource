@@ -2,6 +2,7 @@ source "http://rubygems.org"
 
 gemspec
 
+puts ENV['TEST_RAILS_VERSION']
 case ENV['TEST_RAILS_VERSION']
 when "4.2"
   # gem "activesupport", "~>4.2.0"
