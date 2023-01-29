@@ -8,6 +8,8 @@ when "4.2"
   # gem "activesupport", "~>4.2.0"
   gem "activeresource"
   gem "activesupport", "~>4.2.0"
+  # Fixes undefined method `new' for BigDecimal:Class for newer Rubies
+  gem "bigdecimal", "1.3.5"
 when "5.0"
   # gem "activesupport", "~>5.0.0"
   gem "activeresource"
