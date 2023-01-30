@@ -10,7 +10,7 @@ gem install cached_resource
 
 ## Compatibility
 
-CachedResource is designed to be framework agnostic, but will hook into Rails for caching and logging if available. CachedResource supports from the following ActiveSupport/Rails (right) and Ruby (down) version combinations:
+CachedResource is designed to be framework agnostic, but will hook into Rails for caching and logging if available. CachedResource supports the following ActiveSupport/Rails (right) and Ruby (down) version combinations:
 
 | | 🛤️ 4.2 | 🛤️ 5.0 | 🛤️ 5.1 | 🛤️ 6.0 | 🛤️ 6.1 | 🛤️ 7.0 |
 |-------|-----|-----|-----|-----|-----|-----|
