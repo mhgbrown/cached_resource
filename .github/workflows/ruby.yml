@@ -19,7 +19,7 @@ jobs:
 
     strategy:
       matrix:
-        ruby-version: ['1.9', '2.2', '2.3', '2.4', '2.5', '2.7', '3.0', '3.1', '3.2']
+        ruby-version: ['1.9', '2.2', '2.3', '2.4', '2.5', '2.6', '2.7', '3.0', '3.1', '3.2']
         rails-version: ['4.2', '5.0', '5.1', '6.0', '6.1', '7.0']
         exclude:
           # Segmentation faults during tests, but should work?
@@ -60,6 +60,8 @@ jobs:
           - ruby-version: '2.4'
             rails-version: '7.0'
           - ruby-version: '2.5'
+            rails-version: '7.0'
+          - ruby-version: '2.6'
             rails-version: '7.0'
           # incompatbility with BigDecimal.new
           - ruby-version: '2.7'
