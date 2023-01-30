@@ -4,7 +4,6 @@ gemspec
 
 def eval_gemfile(path)
   gemfile_local = File.expand_path(path, __FILE__)
-  puts gemfile_local, __FILE__
   if File.readable?(gemfile_local)
     puts "Loading #{gemfile_local}..."
     instance_eval(File.read(gemfile_local))
@@ -17,15 +16,20 @@ when "4.2"
   # gem "rails", "~>4.2.0"
   eval_gemfile('../gemfiles/4.2.gemfile')
 when "5.0"
-  gem "rails", "~>5.0.0"
+  # gem "rails", "~>5.0.0"
+  eval_gemfile('../gemfiles/5.0.gemfile')
 when "5.1"
-  gem "rails", "~>5.1.0"
+  # gem "rails", "~>5.1.0"
+  eval_gemfile('../gemfiles/5.1.gemfile')
 when "6.0"
-  gem "rails", "~>6.0.0"
+  # gem "rails", "~>6.0.0"
+  eval_gemfile('../gemfiles/6.0.gemfile')
 when "6.1"
-  gem "rails", "~>6.1.0"
+  # gem "rails", "~>6.1.0"
+  eval_gemfile('../gemfiles/6.1.gemfile')
 when "7.0"
-  gem "rails", "~>7.0.0"
+  # gem "rails", "~>7.0.0"
+  eval_gemfile('../gemfiles/7.0.gemfile')
 else
   puts "\e[93mNo TEST_RAILS_VERSION present, letting dependency manager decide what's best.\e[0m"
 end
