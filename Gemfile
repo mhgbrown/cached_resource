@@ -3,7 +3,7 @@ source "http://rubygems.org"
 gemspec
 
 def eval_gemfile(path)
-  gemfile_local = File.expand_path(path, __dir__)
+  gemfile_local = File.expand_path(path, __FILE__)
   if File.readable?(gemfile_local)
     puts "Loading #{gemfile_local}..." if $DEBUG
     instance_eval(File.read(gemfile_local))
