@@ -97,6 +97,9 @@ jobs:
           ruby-version: ${{ matrix.ruby-version }}
         env:
           TEST_RAILS_VERSION: ${{ matrix.rails-version }}
+      - name: Install bundler
+        if: matrix.rails-version == '4.2'
+        run: gem install bundler -v 1.17.3
       - name: Install dependencies
         run: bundle install
         env:
