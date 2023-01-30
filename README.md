@@ -8,32 +8,24 @@ gem install cached_resource
 ```
 
 ## Compatibility
-CachedResource supports the following Ruby versions:
 
-* 1.9.x
-* 2.2.x
-* 2.3.x
-* 2.4.x
-* 2.5.x
-* 2.7.x
-* 3.0.x
-* 3.1.x
-* 3.2.x
+CachedResource is designed to be framework agnostic, but will hook into Rails for caching and logging if available. CachedResource supports from the following ActiveSupport/Rails (right) and Ruby (down) version combinations:
 
-...and likely other modern Ruby versions. If you require 1.8.7 support, please use version 2.3.4.
+| | 🛤️ 4.2 | 🛤️ 5.0 | 🛤️ 5.1 | 🛤️ 6.0 | 🛤️ 6.1 | 🛤️ 7.0 |
+|-------|-----|-----|-----|-----|-----|-----|
+| 💎 1.9   | ✅   |     |     |     |     |     |
+| 💎 2.2   | ✅   |     |     |     |     |     |
+| 💎 2.3   | ✅   | ✅   | ✅   |     |     |     |
+| 💎 2.4   | ✅   | ✅   | ✅   |     |     |     |
+| 💎 2.5   | ✅   | ✅   | ✅   | ✅   | ✅   |     |
+| 💎 2.7   |     | ✅   | ✅   | ✅   | ✅   | ✅   |
+| 💎 3.0   |     |     |     | ✅   | ✅   | ✅   |
+| 💎 3.1   |     |     |     | ✅   | ✅   | ✅   |
+| 💎 3.2   |     |     |     | ✅   | ✅   | ✅   |
 
-CachedResource is designed to be framework agnostic, but will hook into Rails for caching and logging if available. The latest CachedResource officially supports the following Rails versions:
-
-* 4.2.x
-* 5.0.x
-* 5.1.x
-* 6.0.x
-* 6.1.x
-* 7.0.x
-
-For previously supported versions, use 4.2.0 or below.
 
 ## Configuration
+
 **Set up CachedResource across all ActiveResources:**
 
 ```ruby
