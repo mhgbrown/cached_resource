@@ -23,5 +23,5 @@ when "7.0"
   gem "activeresource"
   gem "activesupport", "~>7.0.0"
 else
-  puts 'Nothing to do'
+  puts "\e[93mNo TEST_RAILS_VERSION present, letting dependency manager decide what's best.\e[0m"
 end
