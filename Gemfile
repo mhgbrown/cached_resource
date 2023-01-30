@@ -5,7 +5,8 @@ gemspec
 puts "\e[93mUsing TEST_RAILS_VERSION #{ENV['TEST_RAILS_VERSION']}\e[0m"
 case ENV['TEST_RAILS_VERSION']
 when "4.2"
-  gem "rails", "~>4.2.0"
+  # gem "rails", "~>4.2.0"
+  require 'gemfiles/4.2.gemfile'
 when "5.0"
   gem "rails", "~>5.0.0"
 when "5.1"
