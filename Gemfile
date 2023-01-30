@@ -4,6 +4,7 @@ gemspec
 
 def eval_gemfile(path)
   gemfile_local = File.expand_path(path, __FILE__)
+  puts gemfile_local
   if File.readable?(gemfile_local)
     puts "Loading #{gemfile_local}..." if $DEBUG
     instance_eval(File.read(gemfile_local))
