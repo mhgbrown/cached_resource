@@ -66,6 +66,21 @@ jobs:
             rails-version: '4.2'
           - ruby-version: '3.0'
             rails-version: '4.2'
+          # ArgumentError: expected attributes to be able to convert to Hash, got "#<Thing:0x000055d208b2e258>"
+          # probably keyword argument delegation different in Ruby 3
+          # https://www.ruby-lang.org/en/news/2019/12/12/separation-of-positional-and-keyword-arguments-in-ruby-3-0/
+          - ruby-version: '3.0'
+            rails-version: '5.0'
+          - ruby-version: '3.0'
+            rails-version: '5.1'
+          - ruby-version: '3.1'
+            rails-version: '5.0'
+          - ruby-version: '3.1'
+            rails-version: '5.1'
+          - ruby-version: '3.2'
+            rails-version: '5.0'
+          - ruby-version: '3.2'
+            rails-version: '5.1'
 
     steps:
       - uses: actions/checkout@v3
