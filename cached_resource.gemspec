@@ -17,6 +17,8 @@ Gem::Specification.new do |s|
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
 
+  s.required_ruby_version = '>= 1.9.0'
+
   s.add_runtime_dependency "activeresource", ">= 4.0"
   s.add_runtime_dependency "activesupport", ">= 4.0"
   s.add_runtime_dependency "nilio", ">= 1.0"
