@@ -152,25 +152,46 @@ Since resources are cached with an argument based key, you may pass in extra dat
 ```ruby
 MyActiveResource.find(:one, from: "/admin/shop.json", uid: "unique value")
 ```
+
 ## Testing
 
-```ruby
-rake
+To test the Ruby + Rails combination configured by default:
+
+```bash
+$ rake
 ```
 
-or to test all supported environments, make sure appraisal is setup
+or to test all supported environments...you have to do a little more work...
 
-```ruby
-bundle exec appraisal install
+Switch your Ruby version to the desired version. This project's maintainer uses `asdf`, so switching to Ruby 3 looks like this:
+
+```bash
+$ asdf local ruby 3.0.5
 ```
 
-and then run
+If you have a `Gemfile.lock`, delete it:
 
-```ruby
-bundle exec appraisal rake
+```bash
+$ rm Gemfile.lock
 ```
 
-For more details, head over to the [appraisal](https://github.com/thoughtbot/appraisal) documentation.
+Then reinstall your dependencies:
+
+```bash
+$ bundle install
+```
+
+and finally, run the tests:
+
+```bash
+$ rake
+```
+
+If you want to test with a specific Rails version, start over and install dependencies with `TEST_RAILS_VERSION` set:
+
+```bash
+$ TEST_RAILS_VERSION=6.1 bundle install
+```
 
 ## Credit/Inspiration
 * quamen and [this gist](http://gist.github.com/947734)
