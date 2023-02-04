@@ -1,4 +1,5 @@
-# CachedResource [![Build Status](https://app.travis-ci.com/mhgbrown/cached_resource.svg?branch=master)](https://app.travis-ci.com/github/mhgbrown/cached_resource)
+# CachedResource ![Tests](https://github.com/mhgbrown/cached_resource/actions/workflows/ruby.yml/badge.svg)
+
 CachedResource is a Ruby gem whose goal is to increase the performance of interacting with web services via ActiveResource by caching responses based on request parameters.  It can help reduce the lag created by making repeated requests across a network.
 
 ## Installation
@@ -8,28 +9,25 @@ gem install cached_resource
 ```
 
 ## Compatibility
-CachedResource supports the following Ruby versions:
 
-* 2.2.x
-* 2.3.x
-* 2.4.x
-* 2.5.x
-* 2.7.x
+CachedResource is designed to be framework agnostic, but will hook into Rails for caching and logging if available. CachedResource supports the following ActiveSupport/Rails (right) and Ruby (down) version combinations:
 
-...and likely other modern Ruby versions. If you require 1.8.7 support, please use version 2.3.4.
+| | 🛤️ 4.2 | 🛤️ 5.0 | 🛤️ 5.1 | 🛤️ 6.0 | 🛤️ 6.1 | 🛤️ 7.0 |
+|-------|-----|-----|-----|-----|-----|-----|
+| 💎 1.9   | ✅   |     |     |     |     |     |
+| 💎 2.2   | ✅   |     |     |     |     |     |
+| 💎 2.3   | ✅   | ✅   | ✅   |     |     |     |
+| 💎 2.4   | ✅   | ✅   | ✅   |     |     |     |
+| 💎 2.5   | ✅   | ✅   | ✅   | ✅   | ✅   |     |
+| 💎 2.6   |   ✅   |   ✅  |  ✅   |  ✅   |  ✅   |     |
+| 💎 2.7   |     | ✅   | ✅   | ✅   | ✅   | ✅   |
+| 💎 3.0   |     |     |     | ✅   | ✅   | ✅   |
+| 💎 3.1   |     |     |     | ✅   | ✅   | ✅   |
+| 💎 3.2   |     |     |     | ✅   | ✅   | ✅   |
 
-CachedResource is designed to be framework agnostic, but will hook into Rails for caching and logging if available. The latest CachedResource officially supports the following Rails versions:
-
-* 4.2.x
-* 5.0.x
-* 5.1.x
-* 6.0.x
-* 6.1.x
-* 7.0.x
-
-For previously supported versions, use 4.2.0 or below.
 
 ## Configuration
+
 **Set up CachedResource across all ActiveResources:**
 
 ```ruby
@@ -154,25 +152,46 @@ Since resources are cached with an argument based key, you may pass in extra dat
 ```ruby
 MyActiveResource.find(:one, from: "/admin/shop.json", uid: "unique value")
 ```
+
 ## Testing
 
-```ruby
-rake
+To test the Ruby + Rails combination configured by default:
+
+```bash
+$ rake
 ```
 
-or to test all supported environments, make sure appraisal is setup
+or to test all supported environments...you have to do a little more work...
 
-```ruby
-bundle exec appraisal install
+Switch your Ruby version to the desired version. This project's maintainer uses `asdf`, so switching to Ruby 3 looks like this:
+
+```bash
+$ asdf local ruby 3.0.5
 ```
 
-and then run
+If you have a `Gemfile.lock`, delete it:
 
-```ruby
-bundle exec appraisal rake
+```bash
+$ rm Gemfile.lock
 ```
 
-For more details, head over to the [appraisal](https://github.com/thoughtbot/appraisal) documentation.
+Then reinstall your dependencies:
+
+```bash
+$ bundle install
+```
+
+and finally, run the tests:
+
+```bash
+$ rake
+```
+
+If you want to test with a specific Rails version, start over and install dependencies with `TEST_RAILS_VERSION` set:
+
+```bash
+$ TEST_RAILS_VERSION=6.1 bundle install
+```
 
 ## Credit/Inspiration
 * quamen and [this gist](http://gist.github.com/947734)

@@ -9,3 +9,4 @@ require 'cached_resource'
 RSpec.configure do |config|
   # nada
 end
+
