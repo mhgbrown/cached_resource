@@ -1,6 +1,5 @@
 require 'rubygems'
 require 'bundler/setup'
-require 'bigdecimal'
 require 'active_resource'
 require 'active_support'
 
