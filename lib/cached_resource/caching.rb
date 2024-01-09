@@ -37,10 +37,11 @@ module CachedResource
         cache_read(key) || find_via_reload(key, *arguments)
       end
 
-      # Re/send the request to fetch the resource. Cache the response
-      # for the request.
+      # Re/send the request to fetch the resource
       def find_via_reload(key, *arguments)
         object = find_without_cache(*arguments)
+        return object unless cached_resource.enabled
+
         cache_collection_synchronize(object, *arguments) if cached_resource.collection_synchronize
         return object if !cached_resource.cache_collections && is_any_collection?(*arguments)
         cache_write(key, object)

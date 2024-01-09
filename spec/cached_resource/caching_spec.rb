@@ -505,14 +505,9 @@ describe CachedResource do
       end
     end
 
-    it "should cache a response" do
+    it "should not cache a response" do
       result = Thing.find(1)
-      read_from_cache("thing/1").should == result
-    end
-
-    it "should cache a response for a string primary key" do
-      result = Thing.find("fded")
-      read_from_cache("thing/fded").should == result
+      read_from_cache("thing/1").should be_nil
     end
 
     it "should always remake the request" do
@@ -527,42 +522,6 @@ describe CachedResource do
       ActiveResource::HttpMock.requests.length.should == 1
       Thing.find("fded")
       ActiveResource::HttpMock.requests.length.should == 2
-    end
-
-    it "should rewrite the cache for each request" do
-      Thing.find(1)
-      old_result = read_from_cache("thing/1")
-
-      # change the response
-      ActiveResource::HttpMock.reset!
-      ActiveResource::HttpMock.respond_to do |mock|
-        mock.get "/things/1.json", {}, @other_thing_json
-      end
-
-      Thing.find(1)
-      new_result = read_from_cache("thing/1")
-      # since active resources are equal if and only if they
-      # are the same object or an instance of the same class,
-      # not new?, and have the same id.
-      new_result.name.should_not == old_result.name
-    end
-
-    it "should rewrite the cache for each request for a string primary key" do
-      Thing.find("fded")
-      old_result = read_from_cache("thing/fded")
-
-      # change the response
-      ActiveResource::HttpMock.reset!
-      ActiveResource::HttpMock.respond_to do |mock|
-        mock.get "/things/fded.json", {}, @other_string_thing_json
-      end
-
-      Thing.find("fded")
-      new_result = read_from_cache("thing/fded")
-      # since active resources are equal if and only if they
-      # are the same object or an instance of the same class,
-      # not new?, and have the same id.
-      new_result.name.should_not == old_result.name
     end
   end
 
