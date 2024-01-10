@@ -44,7 +44,7 @@ module CachedResource
 
         cache_collection_synchronize(object, *arguments) if cached_resource.collection_synchronize
         return object if !cached_resource.cache_collections && is_any_collection?(*arguments)
-        cache_write(key, object)
+        cache_write(key, object, *arguments)
         cache_read(key)
       end
 
@@ -53,29 +53,29 @@ module CachedResource
       # otherwise update an existing collection if possible.
       def cache_collection_synchronize(object, *arguments)
         if object.is_a? Enumerable
-          update_singles_cache(object)
+          update_singles_cache(object, *arguments)
           # update the collection only if this is a subset of it
-          update_collection_cache(object) unless is_collection?(*arguments)
+          update_collection_cache(object, *arguments) unless is_collection?(*arguments)
         else
-          update_collection_cache(object)
+          update_collection_cache(object, *arguments)
         end
       end
 
       # Update the cache of singles with an array of updates.
-      def update_singles_cache(updates)
+      def update_singles_cache(updates, *arguments)
         updates = Array(updates)
-        updates.each { |object| cache_write(cache_key(object.send(primary_key)), object) }
+        updates.each { |object| cache_write(cache_key(object.send(primary_key)), object, *arguments) }
       end
 
       # Update the "mother" collection with an array of updates.
-      def update_collection_cache(updates)
+      def update_collection_cache(updates, *arguments)
         updates = Array(updates)
         collection = cache_read(cache_key(cached_resource.collection_arguments))
 
         if collection && !updates.empty?
           index = collection.inject({}) { |hash, object| hash[object.send(primary_key)] = object; hash }
           updates.each { |object| index[object.send(primary_key)] = object }
-          cache_write(cache_key(cached_resource.collection_arguments), index.values)
+          cache_write(cache_key(cached_resource.collection_arguments), index.values, *arguments)
         end
       end
 
@@ -102,7 +102,10 @@ module CachedResource
             if cache.is_a? Enumerable
               restored = cache.map { |record| full_dup(record) }
               next restored unless respond_to?(:collection_parser)
-              collection_parser.new(restored)
+              collection_parser.new(restored).tap do |parser|
+                parser.resource_class = self
+                parser.original_params = json['original_params']
+              end
             else
               full_dup(cache)
             end
@@ -113,8 +116,12 @@ module CachedResource
       end
 
       # Write an entry to the cache for the given key and value.
-      def cache_write(key, object)
-        result = cached_resource.cache.write(key, object_to_json(object), :race_condition_ttl => cached_resource.race_condition_ttl, :expires_in => cached_resource.generate_ttl)
+      def cache_write(key, object, *arguments)
+        options = arguments[1] || {}
+        params = options[:params]
+        prefix_options, query_options = split_options(params)
+
+        result = cached_resource.cache.write(key, object_to_json(object, prefix_options, query_options), :race_condition_ttl => cached_resource.race_condition_ttl, :expires_in => cached_resource.generate_ttl)
         result && cached_resource.logger.info("#{CachedResource::Configuration::LOGGER_PREFIX} WRITE #{key}")
         result
       end
@@ -151,21 +158,34 @@ module CachedResource
       end
 
       def json_to_object(json)
-        if json.is_a? Array
-          json.map { |attrs|
-            self.new(attrs["object"], attrs["persistence"]) }
+        resource = json['resource']
+        if resource.is_a? Array
+          resource.map do |attrs|
+            self.new(attrs["object"], attrs["persistence"]).tap do |resource|
+              resource.prefix_options = json['prefix_options']
+            end
+          end
         else
-          self.new(json["object"], json["persistence"])
+          self.new(resource["object"], resource["persistence"]).tap do |resource|
+            resource.prefix_options = json['prefix_options']
+          end
         end
       end
 
-      def object_to_json(object)
+      def object_to_json(object, prefix_options, query_options)
         if object.is_a? Enumerable
-           object.map { |o| { :object => o, :persistence => o.persisted? } }.to_json
+          {
+            :resource => object.map { |o| { :object => o, :persistence => o.persisted? } },
+            :prefix_options => prefix_options,
+            :original_params => query_options
+          }.to_json
         elsif object.nil?
           nil.to_json
         else
-          { :object => object, :persistence => object.persisted? }.to_json
+          {
+            :resource => { :object => object, :persistence => object.persisted? },
+            :prefix_options => prefix_options
+          }.to_json
         end
       end
     end

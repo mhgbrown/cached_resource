@@ -18,6 +18,8 @@ describe CachedResource do
     end
 
     @thing = {:thing => {:id => 1, :name => "Ada"}}
+    @thing_collection = [{:id => 1, :name => "Ada"}, {:id => 2, :name => "Ada", :major => 'CS'}]
+    @thing_collection2 = [{:id => 2, :name => "Ada", :major => 'CS'}]
     @other_thing = {:thing => {:id => 1, :name => "Ari"}}
     @thing2 = {:thing => {:id => 2, :name => "Joe"}}
     @other_thing2 = {:thing => {:id => 2, :name => "Jeb"}}
@@ -215,13 +217,32 @@ describe CachedResource do
           cached.should be_instance_of(ActiveResource::Collection)
         end
 
-        it "should return an instance of the collection_parser" do
+        it "should return a chainable instance of the collection_parser" do
           Thing.cached_resource.cache.clear
           class CustomCollection < ActiveResource::Collection; end
           Thing.collection_parser = CustomCollection
-          Thing.all
-          cached = read_from_cache("thing/all")
+
+          ActiveResource::HttpMock.respond_to do |mock|
+            mock.get "/things.json?name=ada", {}, @thing_collection.to_json
+            mock.get "/things.json?major=CS&name=ada", {}, @thing_collection2.to_json
+          end
+
+          non_cached = Thing.where(name: 'ada')
+          non_cached.original_params.should == { 'name' => 'ada' }
+          non_cached.map(&:id).should == @thing_collection.map { |h| h[:id]}
+
+          cached = read_from_cache('thing/all/{:params=>{:name=>"ada"}}')
           cached.should be_instance_of(CustomCollection)
+          cached.original_params.should == { 'name' => 'ada' }
+          cached.map(&:id).should == @thing_collection.map { |h| h[:id]}
+
+          non_cached = cached.where(major: 'CS')
+          non_cached.original_params.should == { 'name' => 'ada', 'major' => 'CS' }
+          non_cached.map(&:id).should == @thing_collection2.map { |h| h[:id]}
+
+          cached = read_from_cache('thing/all/{:params=>{"name"=>"ada",:major=>"cs"}}')
+          cached.original_params.should == { 'name' => 'ada', 'major' => 'CS' }
+          cached.map(&:id).should == @thing_collection2.map { |h| h[:id]}
         end
       else
         it "should return an Array" do
