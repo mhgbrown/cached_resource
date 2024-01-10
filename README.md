@@ -66,7 +66,7 @@ cached_resource :cache => MyCacheStore.new, :ttl => 60, :collection_synchronize 
 
 You can also change them on the fly.
 
-Turn CachedResource off.  This will cause all responses to be retrieved normally (i.e. via the network). All responses will still be cached.
+Turn CachedResource off.  This will cause all responses to be retrieved normally (i.e. via the network). Responses will **NOT** be cached.
 
 ```ruby
   MyActiveResource.cached_resource.off!
