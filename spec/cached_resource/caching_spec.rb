@@ -234,14 +234,21 @@ describe CachedResource do
           cached = read_from_cache('thing/all/{:params=>{:name=>"ada"}}')
           cached.should be_instance_of(CustomCollection)
           cached.original_params.should == { 'name' => 'ada' }
+          cached.resource_class.should == Thing
           cached.map(&:id).should == @thing_collection.map { |h| h[:id]}
 
-          non_cached = cached.where(major: 'CS')
-          non_cached.original_params.should == { 'name' => 'ada', 'major' => 'CS' }
-          non_cached.map(&:id).should == @thing_collection2.map { |h| h[:id]}
+          if ActiveResource::VERSION::MAJOR < 5
+            non_cached = cached.resource_class.where(cached.original_params.merge(major: 'CS'))
+          else
+            non_cached = cached.where(major: 'CS')
+          end
 
+          non_cached.original_params.should == { 'name' => 'ada', 'major' => 'CS' }
+          non_cached.resource_class.should == Thing
+          non_cached.map(&:id).should == @thing_collection2.map { |h| h[:id]}
           cached = read_from_cache('thing/all/{:params=>{"name"=>"ada",:major=>"cs"}}')
           cached.original_params.should == { 'name' => 'ada', 'major' => 'CS' }
+          cached.resource_class.should == Thing
           cached.map(&:id).should == @thing_collection2.map { |h| h[:id]}
         end
       else
