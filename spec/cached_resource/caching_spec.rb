@@ -18,6 +18,8 @@ describe CachedResource do
     end
 
     @thing = {:thing => {:id => 1, :name => "Ada"}}
+    @thing_collection = [{:id => 1, :name => "Ada"}, {:id => 2, :name => "Ada", :major => 'CS'}]
+    @thing_collection2 = [{:id => 2, :name => "Ada", :major => 'CS'}]
     @other_thing = {:thing => {:id => 1, :name => "Ari"}}
     @thing2 = {:thing => {:id => 2, :name => "Joe"}}
     @other_thing2 = {:thing => {:id => 2, :name => "Jeb"}}
@@ -215,13 +217,32 @@ describe CachedResource do
           cached.should be_instance_of(ActiveResource::Collection)
         end
 
-        it "should return an instance of the collection_parser" do
+        it "should return a chainable instance of the collection_parser" do
           Thing.cached_resource.cache.clear
           class CustomCollection < ActiveResource::Collection; end
           Thing.collection_parser = CustomCollection
-          Thing.all
-          cached = read_from_cache("thing/all")
+
+          ActiveResource::HttpMock.respond_to do |mock|
+            mock.get "/things.json?name=ada", {}, @thing_collection.to_json
+            mock.get "/things.json?major=CS&name=ada", {}, @thing_collection2.to_json
+          end
+
+          non_cached = Thing.where(name: 'ada')
+          non_cached.original_params.should == { 'name' => 'ada' }
+          non_cached.map(&:id).should == @thing_collection.map { |h| h[:id]}
+
+          cached = read_from_cache('thing/all/{:params=>{:name=>"ada"}}')
           cached.should be_instance_of(CustomCollection)
+          cached.original_params.should == { 'name' => 'ada' }
+          cached.map(&:id).should == @thing_collection.map { |h| h[:id]}
+
+          non_cached = cached.where(major: 'CS')
+          non_cached.original_params.should == { 'name' => 'ada', 'major' => 'CS' }
+          non_cached.map(&:id).should == @thing_collection2.map { |h| h[:id]}
+
+          cached = read_from_cache('thing/all/{:params=>{"name"=>"ada",:major=>"cs"}}')
+          cached.original_params.should == { 'name' => 'ada', 'major' => 'CS' }
+          cached.map(&:id).should == @thing_collection2.map { |h| h[:id]}
         end
       else
         it "should return an Array" do
@@ -505,14 +526,9 @@ describe CachedResource do
       end
     end
 
-    it "should cache a response" do
+    it "should not cache a response" do
       result = Thing.find(1)
-      read_from_cache("thing/1").should == result
-    end
-
-    it "should cache a response for a string primary key" do
-      result = Thing.find("fded")
-      read_from_cache("thing/fded").should == result
+      read_from_cache("thing/1").should be_nil
     end
 
     it "should always remake the request" do
@@ -527,42 +543,6 @@ describe CachedResource do
       ActiveResource::HttpMock.requests.length.should == 1
       Thing.find("fded")
       ActiveResource::HttpMock.requests.length.should == 2
-    end
-
-    it "should rewrite the cache for each request" do
-      Thing.find(1)
-      old_result = read_from_cache("thing/1")
-
-      # change the response
-      ActiveResource::HttpMock.reset!
-      ActiveResource::HttpMock.respond_to do |mock|
-        mock.get "/things/1.json", {}, @other_thing_json
-      end
-
-      Thing.find(1)
-      new_result = read_from_cache("thing/1")
-      # since active resources are equal if and only if they
-      # are the same object or an instance of the same class,
-      # not new?, and have the same id.
-      new_result.name.should_not == old_result.name
-    end
-
-    it "should rewrite the cache for each request for a string primary key" do
-      Thing.find("fded")
-      old_result = read_from_cache("thing/fded")
-
-      # change the response
-      ActiveResource::HttpMock.reset!
-      ActiveResource::HttpMock.respond_to do |mock|
-        mock.get "/things/fded.json", {}, @other_string_thing_json
-      end
-
-      Thing.find("fded")
-      new_result = read_from_cache("thing/fded")
-      # since active resources are equal if and only if they
-      # are the same object or an instance of the same class,
-      # not new?, and have the same id.
-      new_result.name.should_not == old_result.name
     end
   end
 
