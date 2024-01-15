@@ -25,6 +25,13 @@ CachedResource is designed to be framework agnostic, but will hook into Rails fo
 | 💎 3.1   |     |     |     | ✅   | ✅   | ✅   |
 | 💎 3.2   |     |     |     | ✅   | ✅   | ✅   |
 
+## Limitations
+
+The following are limitations for ActiveResource/Rails versions
+
+| ActiveSupport Version |                             Limitation                                  |
+|---------------------- | ----------------------------------------------------------------------- |
+| 🛤️ 4.X                |  You cannot chain calls. Ie `Thing.where(fn: 'foo').where(ln: 'bar')`. <br> However, you can still access `original_params` and the `resource_class` and replicate it with <br>`call1 = Thing.where(fn: 'foo')`<br>`call1.resource_class.where(call1.original_params.merge(ln: 'bar'))`  |
 
 ## Configuration
 
