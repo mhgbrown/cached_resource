@@ -25,4 +25,5 @@ Gem::Specification.new do |s|
 
   s.add_development_dependency "rake"
   s.add_development_dependency "rspec"
+  s.add_development_dependency "concurrent-ruby", '~> 1.2', '>= 1.2.3'
 end
