@@ -24,6 +24,7 @@ module CachedResource
     # :cache, default: Rails.cache or ActiveSupport::Cache::MemoryStore.new,
     # :logger, default: Rails.logger or ActiveSupport::Logger.new(NilIO.new),
     # :cache_collections, default: true
+    # :concurrent_write, default: false
     def initialize(options={})
       super({
         :enabled => true,
@@ -35,7 +36,8 @@ module CachedResource
         :collection_arguments => [:all],
         :cache => defined?(Rails.cache)  && Rails.cache || CACHE,
         :logger => defined?(Rails.logger) && Rails.logger || LOGGER,
-        :cache_collections => true
+        :cache_collections => true,
+        :concurrent_write => false
       }.merge(options))
     end
 
