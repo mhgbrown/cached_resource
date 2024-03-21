@@ -33,6 +33,7 @@ describe CachedResource do
     @other_string_thing_json = @other_string_thing.to_json
     @date_thing_json = @date_thing.to_json
     @nil_thing = nil.to_json
+    @empty_array_thing = [].to_json
     @not_the_thing = {:not_the_thing => {:id => 1, :name => "Not"}}
     @not_the_thing_json = @not_the_thing.to_json
   end
@@ -59,6 +60,7 @@ describe CachedResource do
         mock.get "/things/1.json?foo=bar", {}, @thing_json
         mock.get "/things/fded.json", {}, @string_thing_json
         mock.get "/things.json?name=42", {}, @nil_thing, 404
+        mock.get "/things.json?name=43", {}, @empty_array_thing
         mock.get "/things/4.json", {}, @date_thing_json
         mock.get "/not_the_things/1.json", {}, @not_the_thing_json
       end
@@ -66,13 +68,17 @@ describe CachedResource do
 
     it "should cache a response" do
       result = Thing.find(1)
-
       read_from_cache("thing/1").should == result
     end
 
-    it "should cache a nil response" do
+    it "shouldn't cache nil response" do
       result = Thing.find(:all, :params => { :name => '42' })
       read_from_cache("thing/all/name/42").should == nil
+    end
+
+    it "shouldn't cache [] response" do
+      result = Thing.find(:all, :params => { :name => '43' })
+      read_from_cache("thing/all/name/43").should == nil
     end
 
     it "should cache a response for a string primary key" do
