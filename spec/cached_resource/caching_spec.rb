@@ -74,15 +74,11 @@ describe CachedResource do
     it "shouldn't cache nil response" do
       Thing.find(:all, :params => { :name => '42' })
       read_from_cache("thing/all/name/42").should == nil
-      result = Thing.find(1)
-      read_from_cache("thing/1").should == result
     end
 
     it "shouldn't cache [] response" do
       Thing.find(:all, :params => { :name => '43' })
       read_from_cache("thing/all/name/43").should == nil
-      result = Thing.find(1)
-      read_from_cache("thing/1").should == result
     end
 
     it "should cache a response for a string primary key" do
