@@ -40,7 +40,7 @@ module CachedResource
       # Re/send the request to fetch the resource
       def find_via_reload(key, *arguments)
         object = find_without_cache(*arguments)
-        return object unless cached_resource.enabled
+        return object unless should_cache?(object)
 
         cache_collection_synchronize(object, *arguments) if cached_resource.collection_synchronize
         return object if !cached_resource.cache_collections && is_any_collection?(*arguments)
@@ -77,6 +77,12 @@ module CachedResource
           updates.each { |object| index[object.send(primary_key)] = object }
           cache_write(cache_key(cached_resource.collection_arguments), index.values, *arguments)
         end
+      end
+
+      # Avoid cache nil or [] objects
+      def should_cache?(object)
+        return false unless cached_resource.enabled
+        object.respond_to?(:empty?) ? !object.empty? : !!object
       end
 
       # Determine if the given arguments represent
