@@ -66,19 +66,27 @@ describe CachedResource do
       end
     end
 
-    it "should cache a response" do
-      result = Thing.find(1)
-      read_from_cache("thing/1").should == result
+    shared_examples "caching" do
+      it "should cache a response" do
+        result = Thing.find(1)
+        read_from_cache("thing/1").should == result
+      end
+
+      it "shouldn't cache nil response" do
+        Thing.find(:all, :params => { :name => '42' })
+        read_from_cache("thing/all/name/42").should == nil
+      end
+
+      it "shouldn't cache blank response" do
+        Thing.find(:all, :params => { :name => '43' })
+        read_from_cache("thing/all/name/43").should == nil
+      end
     end
 
-    it "shouldn't cache nil response" do
-      Thing.find(:all, :params => { :name => '42' })
-      read_from_cache("thing/all/name/42").should == nil
-    end
+    include_examples "caching"
 
-    it "shouldn't cache [] response" do
-      Thing.find(:all, :params => { :name => '43' })
-      read_from_cache("thing/all/name/43").should == nil
+    context 'when concurrency is turned on' do
+      include_examples "caching"
     end
 
     it "should cache a response for a string primary key" do
@@ -234,12 +242,12 @@ describe CachedResource do
           end
 
           non_cached = Thing.where(name: 'ada')
-          non_cached.original_params.should == { 'name' => 'ada' }
+          non_cached.original_params.should == { :name => 'ada' }
           non_cached.map(&:id).should == @thing_collection.map { |h| h[:id]}
 
           cached = read_from_cache('thing/all/{:params=>{:name=>"ada"}}')
           cached.should be_instance_of(CustomCollection)
-          cached.original_params.should == { 'name' => 'ada' }
+          cached.original_params.should == { :name => 'ada' }
           cached.resource_class.should == Thing
           cached.map(&:id).should == @thing_collection.map { |h| h[:id]}
 
@@ -249,11 +257,11 @@ describe CachedResource do
             non_cached = cached.where(major: 'CS')
           end
 
-          non_cached.original_params.should == { 'name' => 'ada', 'major' => 'CS' }
+          non_cached.original_params.should == { :name => 'ada', :major => 'CS' }
           non_cached.resource_class.should == Thing
           non_cached.map(&:id).should == @thing_collection2.map { |h| h[:id]}
-          cached = read_from_cache('thing/all/{:params=>{"name"=>"ada",:major=>"cs"}}')
-          cached.original_params.should == { 'name' => 'ada', 'major' => 'CS' }
+          cached = read_from_cache('thing/all/{:params=>{:name=>"ada",:major=>"cs"}}')
+          cached.original_params.should == { :name => 'ada', :major => 'CS' }
           cached.resource_class.should == Thing
           cached.map(&:id).should == @thing_collection2.map { |h| h[:id]}
         end
