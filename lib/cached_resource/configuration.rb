@@ -24,18 +24,20 @@ module CachedResource
     # :cache, default: Rails.cache or ActiveSupport::Cache::MemoryStore.new,
     # :logger, default: Rails.logger or ActiveSupport::Logger.new(NilIO.new),
     # :cache_collections, default: true
+    # :concurrent_write, default: false
     def initialize(options={})
       super({
         :enabled => true,
+        :cache => defined?(Rails.cache)  && Rails.cache || CACHE,
+        :cache_collections => true,
+        :collection_arguments => [:all],
+        :collection_synchronize => false,
+        :concurrent_write => false,
+        :logger => defined?(Rails.logger) && Rails.logger || LOGGER,
         :race_condition_ttl => 86400,
         :ttl => 604800,
         :ttl_randomization => false,
-        :ttl_randomization_scale => 1..2,
-        :collection_synchronize => false,
-        :collection_arguments => [:all],
-        :cache => defined?(Rails.cache)  && Rails.cache || CACHE,
-        :logger => defined?(Rails.logger) && Rails.logger || LOGGER,
-        :cache_collections => true
+        :ttl_randomization_scale => 1..2
       }.merge(options))
     end
 

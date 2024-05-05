@@ -55,15 +55,17 @@ end
 CachedResource accepts the following options:
 
 * `:enabled` Default: `true`
-* `:ttl` The time in seconds until the cache should expire. Default: `604800`
-* `:race_condition_ttl` The race condition ttl, to prevent [dog pile effect](https://en.wikipedia.org/wiki/Cache_stampede) or [cache stampede](https://en.wikipedia.org/wiki/Cache_stampede). Default: 86400
-* `:ttl_randomization` Enable ttl randomization. Default: `false`
-* `:ttl_randomization_scale` A Range from which a random value will be selected to scale the ttl. Default: `1..2`
-* `:collection_synchronize` Use collections to generate cache entries for individuals.  Update the existing cached principal collection when retrieving subsets of the principal collection or individuals.  Default: `false`
-* `:collection_arguments` The arguments that identify the principal collection request. Default: `[:all]`
-* `:logger` The logger to which CachedResource messages should be written. Default: The `Rails.logger` if available, or an `ActiveSupport::Logger`
-* `:cache` The cache store that CacheResource should use. Default: The `Rails.cache` if available, or an `ActiveSupport::Cache::MemoryStore`
 * `:cache_collections` Set to false to always remake a request for collections. Default: `true`
+* `:cache` The cache store that CacheResource should use. Default: The `Rails.cache` if available, or an `ActiveSupport::Cache::MemoryStore`
+* `:collection_arguments` The arguments that identify the principal collection request. Default: `[:all]`
+* `:collection_synchronize` Use collections to generate cache entries for individuals.  Update the existing cached principal collection when retrieving subsets of the principal collection or individuals.  Default: `false`
+* `:concurrent_write` Set to true to make concurrent writes to cache after successful API response. Default: `false`
+    * Requires the [concurrent-ruby](https://rubygems.org/gems/concurrent-ruby) gem
+* `:logger` The logger to which CachedResource messages should be written. Default: The `Rails.logger` if available, or an `ActiveSupport::Logger`
+* `:race_condition_ttl` The race condition ttl, to prevent [dog pile effect](https://en.wikipedia.org/wiki/Cache_stampede) or [cache stampede](https://en.wikipedia.org/wiki/Cache_stampede). Default: 86400
+* `:ttl_randomization_scale` A Range from which a random value will be selected to scale the ttl. Default: `1..2`
+* `:ttl_randomization` Enable ttl randomization. Default: `false`
+* `:ttl` The time in seconds until the cache should expire. Default: `604800`
 
 You can set them like this:
 

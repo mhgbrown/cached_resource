@@ -45,7 +45,7 @@ module CachedResource
         cache_collection_synchronize(object, *arguments) if cached_resource.collection_synchronize
         return object if !cached_resource.cache_collections && is_any_collection?(*arguments)
         cache_write(key, object, *arguments)
-        cache_read(key)
+        object
       end
 
       # If this is a pure, unadulterated "all" request
@@ -82,7 +82,7 @@ module CachedResource
       # Avoid cache nil or [] objects
       def should_cache?(object)
         return false unless cached_resource.enabled
-        object.respond_to?(:empty?) ? !object.empty? : !!object
+        object.present?
       end
 
       # Determine if the given arguments represent
@@ -110,7 +110,7 @@ module CachedResource
               next restored unless respond_to?(:collection_parser)
               collection_parser.new(restored).tap do |parser|
                 parser.resource_class = self
-                parser.original_params = json['original_params']
+                parser.original_params = json['original_params'].deep_symbolize_keys
               end
             else
               full_dup(cache)
@@ -123,6 +123,14 @@ module CachedResource
 
       # Write an entry to the cache for the given key and value.
       def cache_write(key, object, *arguments)
+        if cached_resource.concurrent_write
+          Concurrent::Promise.execute { _cache_write(key, object, *arguments) } && true
+        else
+          _cache_write(key, object, *arguments)
+        end
+      end
+
+      def _cache_write(key, object, *arguments)
         options = arguments[1] || {}
         params = options[:params]
         prefix_options, query_options = split_options(params)
