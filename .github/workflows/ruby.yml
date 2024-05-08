@@ -33,8 +33,6 @@ jobs:
           - ruby-version: '2.4'
             rails-version: '6.1'
           # activesupport (~> 7.0.0) was resolved to 7.0.4.2, which depends on Ruby (>= 2.7.0)
-          # - ruby-version: '2.2'
-          #   rails-version: '7.0'
           - ruby-version: '2.3'
             rails-version: '7.0'
           - ruby-version: '2.4'
