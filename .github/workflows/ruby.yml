@@ -67,6 +67,15 @@ jobs:
             rails-version: '5.0'
           - ruby-version: '3.2'
             rails-version: '5.1'
+          # rails (~> 7.1.0) was resolved to 7.1.3.2, which depends on Ruby (>= 2.7.0)
+          - ruby-version: '2.3'
+            rails-version: '7.1'
+          - ruby-version: '2.4'
+            rails-version: '7.1'
+          - ruby-version: '2.5'
+            rails-version: '7.1'
+          - ruby-version: '2.6'
+            rails-version: '7.1'
 
     steps:
       - uses: actions/checkout@v4
