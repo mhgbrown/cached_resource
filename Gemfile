@@ -24,6 +24,8 @@ when "6.1"
   eval_gemfile('../gemfiles/6.1.gemfile')
 when "7.0"
   eval_gemfile('../gemfiles/7.0.gemfile')
+when "7.1"
+  eval_gemfile('../gemfiles/7.1.gemfile')
 else
   puts "\e[93mNo TEST_RAILS_VERSION present, letting dependency manager decide what's best.\e[0m" if ENV['DEBUG']
 end
