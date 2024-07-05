@@ -89,6 +89,21 @@ describe CachedResource do
       include_examples "caching"
     end
 
+    context "When there is a cache prefix" do
+      before do
+        Thing.cached_resource.cache_key_prefix = "prefix123"
+      end
+
+      after do
+        Thing.cached_resource.cache_key_prefix = nil
+      end
+
+      it "caches with the cache_key_prefix" do
+        result = Thing.find(1)
+        read_from_cache("prefix123/thing/1").should == result
+      end
+    end
+
     it "should cache a response for a string primary key" do
       result = Thing.find("fded")
       read_from_cache("thing/fded").should == result
