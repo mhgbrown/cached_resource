@@ -148,9 +148,18 @@ module CachedResource
             cached_resource.logger.info("#{CachedResource::Configuration::LOGGER_PREFIX} CLEAR ALL")
           end
         else
-          cached_resource.cache.delete_matched("^#{name_key}/*").tap do |result|
-            cached_resource.logger.info("#{CachedResource::Configuration::LOGGER_PREFIX} CLEAR #{name_key}/*")
+          cached_resource.cache.delete_matched(cache_key_delete_pattern).tap do |result|
+            cached_resource.logger.info("#{CachedResource::Configuration::LOGGER_PREFIX} CLEAR #{cache_key_delete_pattern}")
           end
+        end
+      end
+
+      def cache_key_delete_pattern
+        case cached_resource.cache.class.to_s
+        when "ActiveSupport::Cache::MemoryStore", "ActiveSupport::Cache::FileStore"
+          /^#{name_key}\//
+        else
+          "#{name_key}/*"
         end
       end
 
@@ -160,7 +169,10 @@ module CachedResource
       end
 
       def name_key
-        name.parameterize.gsub("-", "/")
+        @name_key ||= begin
+          prefix = cached_resource.cache_key_prefix.nil? ? "" : "#{cached_resource.cache_key_prefix}/"
+          prefix + name.parameterize.gsub("-", "/")
+        end
       end
 
       # Make a full duplicate of an ActiveResource record.

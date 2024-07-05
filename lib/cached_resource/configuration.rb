@@ -27,12 +27,13 @@ module CachedResource
     # :concurrent_write, default: false
     def initialize(options={})
       super({
-        :enabled => true,
         :cache => defined?(Rails.cache)  && Rails.cache || CACHE,
         :cache_collections => true,
+        :cache_key_prefix => nil,
         :collection_arguments => [:all],
         :collection_synchronize => false,
         :concurrent_write => false,
+        :enabled => true,
         :logger => defined?(Rails.logger) && Rails.logger || LOGGER,
         :race_condition_ttl => 86400,
         :ttl => 604800,
