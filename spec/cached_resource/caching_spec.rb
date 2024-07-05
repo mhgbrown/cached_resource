@@ -85,8 +85,55 @@ describe CachedResource do
 
     include_examples "caching"
 
+    # NOTE: Possibly flaky, but best easy/cheap way to test concurrency.
     context 'when concurrency is turned on' do
-      include_examples "caching"
+      before do
+        # it's on by default, but lets call the method
+        # to make sure it works
+        Thing.cached_resource.cache.clear
+        Thing.cached_resource.on!
+        NotTheThing.cached_resource.cache.clear
+        NotTheThing.cached_resource.on!
+
+        ActiveResource::HttpMock.reset!
+        ActiveResource::HttpMock.respond_to do |mock|
+          mock.get "/things/5.json", {}, {:thing => {:id => 1, :name => ("x" * 1_000_000) }}.to_json
+        end
+      end
+
+      after do
+        Thing.cached_resource.concurrent_write = false
+      end
+
+      it "should cache a response asynchronusly when on" do
+        Thing.cached_resource.concurrent_write = true
+        result = Thing.find(5)
+        read_from_cache("thing/5").should == nil
+        loops = 0
+        begin
+          Timeout.timeout(5) do
+            loop do
+              loops += 1
+              if read_from_cache("thing/5") == result
+                break
+              else
+                sleep 0.5
+              end
+            end
+          end
+        rescue Timeout::Error
+          RSpec::Expectations.fail_with("Concurrency failed: Cache was not populated within the expected time")
+        end
+
+        loops.should > 0
+        read_from_cache("thing/5").should == result
+      end
+
+      it "will cache a response synchronously when off" do
+        Thing.cached_resource.concurrent_write = false
+        result = Thing.find(5)
+        read_from_cache("thing/5").should == result
+      end
     end
 
     context "When there is a cache prefix" do
