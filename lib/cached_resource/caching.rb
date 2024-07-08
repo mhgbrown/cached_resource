@@ -26,7 +26,13 @@ module CachedResource
 
       # Clear the cache.
       def clear_cache(options=nil)
-        cache_clear(options)
+        if cached_resource.concurrent_write
+          Concurrent::Promise.execute { cache_clear(options) }
+        else
+          cache_clear(options)
+        end
+
+        true
       end
 
       private
@@ -205,8 +211,6 @@ module CachedResource
             :prefix_options => prefix_options,
             :original_params => query_options
           }.to_json
-        elsif object.nil?
-          nil.to_json
         else
           {
             :resource => { :object => object, :persistence => object.persisted? },

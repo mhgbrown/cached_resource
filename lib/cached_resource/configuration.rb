@@ -50,6 +50,8 @@ module CachedResource
     end
 
     # Enables caching.
+    # NOTE: Disabled coverage because it is not being picked up by simplecov
+    # :nocov:
     def on!
       self.enabled = true
     end
@@ -58,6 +60,7 @@ module CachedResource
     def off!
       self.enabled = false
     end
+    # :nocov:
 
     private
 
