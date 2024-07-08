@@ -101,6 +101,6 @@ jobs:
           DEBUG: true
       - name: Fix concurrent ruby
         if: matrix.rails-version == '4.2'
-        run: sudo gem install concurrent-ruby
+        run: sudo gem install concurrent-ruby -n /usr/local/bin/
       - name: Run tests
         run: bundle exec rake
