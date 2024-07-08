@@ -91,9 +91,6 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby-version }}
-      - name: Fix concurrent ruby
-        if: matrix.rails-version == '4.2'
-        run: sudo gem install concurrent-ruby
       - name: Install bundler 1.x.x
         if: matrix.rails-version == '4.2'
         run: gem uninstall -aIx bundler && gem install bundler -v 1.17.3
@@ -102,5 +99,8 @@ jobs:
         env:
           TEST_RAILS_VERSION: ${{ matrix.rails-version }}
           DEBUG: true
+      - name: Fix concurrent ruby
+        if: matrix.rails-version == '4.2'
+        run: sudo gem install concurrent-ruby
       - name: Run tests
         run: bundle exec rake
