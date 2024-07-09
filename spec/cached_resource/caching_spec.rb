@@ -321,19 +321,26 @@ describe CachedResource::Caching do
   end
 
   describe "#cache_key_delete_pattern" do
-    let(:cache_class_name) { "Redis" }
+    let(:cache_class) { "Redis" }
+
     before do
-      allow(Thing.cached_resource).to receive(:cache).and_return(double(class: cache_class_name))
+      allow(Thing.cached_resource).to receive(:cache).and_return(cache_class)
     end
 
-    ["ActiveSupport::Cache::MemoryStore", "ActiveSupport::Cache::FileStore"].each do |cache_name|
-      context "with cache #{cache_name}" do
-        let(:cache_class_name) { cache_name }
-        it do
-          expect(Thing.send(:cache_key_delete_pattern)).to eq(/^thing\//)
-        end
+    context "with cache ActiveSupport::Cache::MemoryStore" do
+      let(:cache_class) { ActiveSupport::Cache::MemoryStore.new }
+      it do
+        expect(Thing.send(:cache_key_delete_pattern)).to eq(/^thing\//)
       end
     end
+
+    context "with cache ActiveSupport::Cache::FileStore" do
+      let(:cache_class) { ActiveSupport::Cache::FileStore.new('tmp/') }
+      it do
+        expect(Thing.send(:cache_key_delete_pattern)).to eq(/^thing\//)
+      end
+    end
+
     context "default" do
       it do
         expect(Thing.send(:cache_key_delete_pattern)).to eq("thing/*")
