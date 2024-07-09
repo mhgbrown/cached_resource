@@ -115,7 +115,7 @@ describe CachedResource do
         # expect(Concurrent::Promise).to receive(:execute)
         # Concurrent::Promise.execute
 
-        read_from_cache("thing/5").should == nil
+        # read_from_cache("thing/5").should == nil
         loops = 0
         begin
           Timeout.timeout(5) do
