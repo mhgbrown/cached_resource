@@ -2,7 +2,6 @@ module CachedResource
   # The Configuration class manages class specific options
   # for cached resource.
   class Configuration < OpenStruct
-
     # default or fallback cache without rails
     CACHE = ActiveSupport::Cache::MemoryStore.new
 
@@ -25,20 +24,20 @@ module CachedResource
     # :logger, default: Rails.logger or ActiveSupport::Logger.new(NilIO.new),
     # :cache_collections, default: true
     # :concurrent_write, default: false
-    def initialize(options={})
+    def initialize(options = {})
       super({
-        :cache => defined?(Rails.cache)  && Rails.cache || CACHE,
-        :cache_collections => true,
-        :cache_key_prefix => nil,
-        :collection_arguments => [:all],
-        :collection_synchronize => false,
-        :concurrent_write => false,
-        :enabled => true,
-        :logger => defined?(Rails.logger) && Rails.logger || LOGGER,
-        :race_condition_ttl => 86400,
-        :ttl => 604800,
-        :ttl_randomization => false,
-        :ttl_randomization_scale => 1..2
+        cache: defined?(Rails.cache) && Rails.cache || CACHE,
+        cache_collections: true,
+        cache_key_prefix: nil,
+        collection_arguments: [:all],
+        collection_synchronize: false,
+        concurrent_write: false,
+        enabled: true,
+        logger: defined?(Rails.logger) && Rails.logger || LOGGER,
+        race_condition_ttl: 86400,
+        ttl: 604800,
+        ttl_randomization: false,
+        ttl_randomization_scale: 1..2
       }.merge(options))
     end
 
@@ -72,10 +71,9 @@ module CachedResource
 
     # Choose a random value from within the given range, optionally
     # seeded by seed.
-    def sample_range(range, seed=nil)
+    def sample_range(range, seed = nil)
       srand seed if seed
       rand * (range.end - range.begin) + range.begin
     end
-
   end
 end

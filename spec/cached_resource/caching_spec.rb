@@ -1,4 +1,4 @@
-require 'spec_helper'
+require "spec_helper"
 
 class Thing < ActiveResource::Base
   self.site = "http://api.thing.com"
@@ -16,8 +16,8 @@ end
 
 describe CachedResource::Caching do
   let(:thing) { {thing: {id: 1, name: "Ada"}} }
-  let(:thing_collection) { [{id: 1, name: "Ada"}, {id: 2, name: "Ada", major: 'CS'}] }
-  let(:thing_collection2) { [{id: 2, name: "Ada", major: 'CS'}] }
+  let(:thing_collection) { [{id: 1, name: "Ada"}, {id: 2, name: "Ada", major: "CS"}] }
+  let(:thing_collection2) { [{id: 2, name: "Ada", major: "CS"}] }
   let(:other_thing) { {thing: {id: 1, name: "Ari"}} }
   let(:thing2) { {thing: {id: 2, name: "Joe"}} }
   let(:other_thing2) { {thing: {id: 2, name: "Jeb"}} }
@@ -56,7 +56,7 @@ describe CachedResource::Caching do
       end
 
       it "caches without whitespace in keys" do
-        result = Thing.find(1, from: 'path', params: { foo: 'bar' })
+        result = Thing.find(1, from: "path", params: {foo: "bar"})
         expect(read_from_cache('thing/1/{:from=>"path",:params=>{:foo=>"bar"}}')).to eq(result)
       end
 
@@ -69,7 +69,7 @@ describe CachedResource::Caching do
         Thing.find(1)
         NotTheThing.find(1)
         expect { Thing.clear_cache }.to change { read_from_cache("thing/1") }.from(kind_of(Thing)).to(nil).and(
-           not_change { read_from_cache("notthething/1", NotTheThing) }
+          not_change { read_from_cache("notthething/1", NotTheThing) }
         )
       end
 
@@ -114,12 +114,12 @@ describe CachedResource::Caching do
 
     context "Caching a collection" do
       it "does not cache an empty array response" do
-        Thing.find(:all, params: { name: '43' })
+        Thing.find(:all, params: {name: "43"})
         expect(read_from_cache("thing/all/name/43")).to be_nil
       end
 
       it "does not cache a nil response" do
-        Thing.find(:all, params: { name: '42' })
+        Thing.find(:all, params: {name: "42"})
         expect(read_from_cache("thing/all/name/42")).to be_nil
       end
 
@@ -132,7 +132,7 @@ describe CachedResource::Caching do
         Thing.all
         NotTheThing.all
         expect { Thing.clear_cache }.to change { read_from_cache("thing/all") }.from(kind_of(Enumerable)).to(nil).and(
-           not_change { read_from_cache("notthething/all", NotTheThing) }
+          not_change { read_from_cache("notthething/all", NotTheThing) }
         )
       end
 
@@ -173,7 +173,7 @@ describe CachedResource::Caching do
     end
 
     context "TTL" do
-      let(:now) { Time.new(1999,12,31, 12, 0, 0) }
+      let(:now) { Time.new(1999, 12, 31, 12, 0, 0) }
 
       before do
         Timecop.freeze(now)
@@ -187,7 +187,7 @@ describe CachedResource::Caching do
 
       it "remakes the request when the ttl expires" do
         expect { Thing.find(1) }.to change { ActiveResource::HttpMock.requests.length }.from(0).to(1)
-        Timecop.travel(now + 2 )
+        Timecop.travel(now + 2)
         expect { Thing.find(1) }.to change { ActiveResource::HttpMock.requests.length }.from(1).to(2)
       end
     end
@@ -195,7 +195,7 @@ describe CachedResource::Caching do
     context "when concurrency is turned on" do
       before do
         ActiveResource::HttpMock.respond_to do |mock|
-          mock.get "/things/5.json", {}, { thing: { id: 1, name: ("x" * 1_000_000) } }.to_json
+          mock.get "/things/5.json", {}, {thing: {id: 1, name: ("x" * 1_000_000)}}.to_json
         end
         Thing.cached_resource.concurrent_write = true
       end
@@ -221,7 +221,7 @@ describe CachedResource::Caching do
     context "when concurrency is turned on" do
       before do
         ActiveResource::HttpMock.respond_to do |mock|
-          mock.get "/things/5.json", {}, { thing: { id: 1, name: ("x" * 1_000_000) } }.to_json
+          mock.get "/things/5.json", {}, {thing: {id: 1, name: ("x" * 1_000_000)}}.to_json
         end
         Thing.cached_resource.concurrent_write = false
       end
@@ -251,7 +251,7 @@ describe CachedResource::Caching do
 
     context "when ActiveSupport.parse_json_times is enabled" do
       before(:all) do
-        Time.zone = 'UTC'
+        Time.zone = "UTC"
         ActiveSupport.parse_json_times = true
       end
 
@@ -277,7 +277,7 @@ describe CachedResource::Caching do
       end
 
       it "should rewrite cache entries for its members when reloaded" do
-        old_results = Thing.all(:reload => true)
+        old_results = Thing.all(reload: true)
         # Update response
         ActiveResource::HttpMock.respond_to do |mock|
           mock.get "/things/1.json", {}, other_thing.to_json
@@ -310,12 +310,12 @@ describe CachedResource::Caching do
     end
 
     it "does not cache a nil response" do
-      Thing.find(:all, params: { name: '42' })
+      Thing.find(:all, params: {name: "42"})
       expect(read_from_cache("thing/all/name/42")).to be_nil
     end
 
     it "does not cache an empty array response" do
-      Thing.find(:all, params: { name: '43' })
+      Thing.find(:all, params: {name: "43"})
       expect(read_from_cache("thing/all/name/43")).to be_nil
     end
   end

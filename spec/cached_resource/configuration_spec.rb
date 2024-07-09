@@ -1,29 +1,29 @@
-require 'spec_helper'
+require "spec_helper"
 
 class Foo < ActiveResource::Base
   cached_resource
 end
 
 class Bar < ActiveResource::Base
-  cached_resource :ttl => 1,
-                  :race_condition_ttl => 5,
-                  :cache => "cache",
-                  :logger => "logger",
-                  :enabled => false,
-                  :collection_synchronize => true,
-                  :collection_arguments => [:every],
-                  :custom => "irrelevant",
-                  :cache_collections => true
+  cached_resource ttl: 1,
+    race_condition_ttl: 5,
+    cache: "cache",
+    logger: "logger",
+    enabled: false,
+    collection_synchronize: true,
+    collection_arguments: [:every],
+    custom: "irrelevant",
+    cache_collections: true
 end
 
 class Bar2 < Bar; end
+
 class Bar3 < Bar
   # override the superclasses configuration
-  self.cached_resource = CachedResource::Configuration.new(:ttl => 60)
+  self.cached_resource = CachedResource::Configuration.new(ttl: 60)
 end
 
 describe CachedResource::Configuration do
-
   let(:configuration) { described_class.new }
   let(:default_logger) { defined?(ActiveSupport::Logger) ? ActiveSupport::Logger : ActiveSupport::BufferedLogger }
 
@@ -73,9 +73,9 @@ describe CachedResource::Configuration do
         expect(configuration.logger.class).to eq(default_logger)
         # ActiveSupport switched around the log destination variables
         # Check if either are what we expect to be compatible
-        old_as = configuration.logger.instance_variable_get(:@log).class == NilIO
-        new_as = configuration.logger.instance_variable_get(:@log_dest).class == NilIO
-        newer_as = configuration.logger.instance_variable_get(:@logdev).instance_variable_get(:@dev).class == NilIO
+        old_as = configuration.logger.instance_variable_get(:@log).instance_of?(NilIO)
+        new_as = configuration.logger.instance_variable_get(:@log_dest).instance_of?(NilIO)
+        newer_as = configuration.logger.instance_variable_get(:@logdev).instance_variable_get(:@dev).instance_of?(NilIO)
         expect(old_as || new_as || newer_as).to eq(true)
       end
 
@@ -86,16 +86,7 @@ describe CachedResource::Configuration do
 
     describe "inside a Rails environment" do
       before(:each) do
-        Rails = OpenStruct.new(:logger => "logger", :cache => "cache")
-        load "cached_resource/configuration.rb"
-      end
-
-      after(:each) do
-        # remove the rails constant and unbind the
-        # cache and logger from the configuration
-        # defaults
-        Object.send(:remove_const, :Rails)
-        load "cached_resource/configuration.rb"
+        stub_const("Rails", double(:Rails, logger: "logger", cache: "cache"))
       end
 
       it "should be logging to the rails logger" do
@@ -150,7 +141,6 @@ describe CachedResource::Configuration do
       expect(cr.cache_collections).to eq(true)
       expect(cr.race_condition_ttl).to eq(86400)
     end
-
   end
 
   # At the moment, not too keen on implementing some fancy

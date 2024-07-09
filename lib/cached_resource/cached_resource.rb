@@ -10,7 +10,7 @@ module CachedResource
         attr_accessor :cached_resource
 
         # Initialize cached resource or retrieve the current cached resource configuration.
-        def cached_resource(options={})
+        def cached_resource(options = {})
           defined?(@cached_resource) && @cached_resource || setup_cached_resource!(options)
         end
 
@@ -20,7 +20,7 @@ module CachedResource
           @cached_resource = CachedResource::Configuration.new(options)
           if @cached_resource.concurrent_write
             begin
-              require 'concurrent/promise'
+              require "concurrent/promise"
             rescue LoadError
               @cached_resource.logger.error(
                 "`concurrent_write` option is enabled, but `concurrent-ruby` is not an installed dependency"
@@ -40,7 +40,7 @@ module CachedResource
       # that wants an independent configuration will need to execute:
       # self.cached_resource = CachedResource::Configuration.new(options={})
       def inherited(child)
-        child.cached_resource = self.cached_resource if defined?(@cached_resource)
+        child.cached_resource = cached_resource if defined?(@cached_resource)
         super
       end
     end

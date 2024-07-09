@@ -5,95 +5,25 @@
 # This workflow will download a prebuilt Ruby version, install dependencies and run tests with Rake
 # For more information see: https://github.com/marketplace/actions/setup-ruby-jruby-and-truffleruby
 
-name: Test
+name: Code Coverage
 
-on: [push]
+on: [push, workflow_dispatch, pull_request]
 
 permissions:
   contents: read
 
 jobs:
   test:
-
     runs-on: ubuntu-20.04
-
     strategy:
       matrix:
-        ruby-version: ['2.3', '2.4', '2.5', '2.6', '2.7', '3.0', '3.1', '3.2', '3.3']
-        rails-version: ['4.2', '5.0', '5.1', '6.0', '6.1', '7.0', '7.1']
-        exclude:
-          # activesupport (~> 6.0.0) was resolved to 6.0.6.1, which depends on ruby (>= 2.5.0)
-          # activesupport (~> 6.1.0) was resolved to 6.1.7.2, which depends on ruby (>= 2.5.0)
-          - ruby-version: '2.3'
-            rails-version: '6.0'
-          - ruby-version: '2.3'
-            rails-version: '6.1'
-          - ruby-version: '2.4'
-            rails-version: '6.0'
-          - ruby-version: '2.4'
-            rails-version: '6.1'
-          # activesupport (~> 7.0.0) was resolved to 7.0.4.2, which depends on Ruby (>= 2.7.0)
-          - ruby-version: '2.3'
-            rails-version: '7.0'
-          - ruby-version: '2.4'
-            rails-version: '7.0'
-          - ruby-version: '2.5'
-            rails-version: '7.0'
-          - ruby-version: '2.6'
-            rails-version: '7.0'
-          # incompatbility with BigDecimal.new
-          - ruby-version: '2.7'
-            rails-version: '4.2'
-          - ruby-version: '3.0'
-            rails-version: '4.2'
-          - ruby-version: '3.1'
-            rails-version: '4.2'
-          - ruby-version: '3.2'
-            rails-version: '4.2'
-          # ArgumentError: expected attributes to be able to convert to Hash, got "#<Thing:0x000055d208b2e258>"
-          # probably keyword argument delegation different in Ruby 3
-          # https://www.ruby-lang.org/en/news/2019/12/12/separation-of-positional-and-keyword-arguments-in-ruby-3-0/
-          - ruby-version: '3.0'
-            rails-version: '5.0'
-          - ruby-version: '3.0'
-            rails-version: '5.1'
-          - ruby-version: '3.1'
-            rails-version: '5.0'
-          - ruby-version: '3.1'
-            rails-version: '5.1'
-          - ruby-version: '3.2'
-            rails-version: '5.0'
-          - ruby-version: '3.2'
-            rails-version: '5.1'
-          # rails (~> 7.1.0) was resolved to 7.1.3.2, which depends on Ruby (>= 2.7.0)
-          - ruby-version: '2.3'
-            rails-version: '7.1'
-          - ruby-version: '2.4'
-            rails-version: '7.1'
-          - ruby-version: '2.5'
-            rails-version: '7.1'
-          - ruby-version: '2.6'
-            rails-version: '7.1'
-          # Because rails >= 4.0.0.beta1, < 5.0.5.rc1 depends on bundler >= 1.3.0, < 2.0
-          #   and the current Bundler version (2.5.9) does not satisfy bundler >= 1.3.0, < 2.0,
-          #   rails >= 4.0.0.beta1, < 5.0.5.rc1 cannot be used.
-          # So, because Gemfile depends on rails ~> 4.2.0,
-          #   version solving has failed.
-          - ruby-version: '3.3'
-            rails-version: '4.2'
-
+        rails-version: ["6.1", "7.1"]
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Ruby ${{ matrix.ruby-version }}
-        # To automatically get bug fixes and new Ruby versions for ruby/setup-ruby,
-        # change this to (see https://github.com/ruby/setup-ruby#versioning):
-        # uses: ruby/setup-ruby@v1
+      - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: ${{ matrix.ruby-version }}
-      - name: Install bundler 1.x.x
-        if: matrix.rails-version == '4.2'
-        run: gem uninstall -aIx bundler && gem install bundler -v 1.17.3
+          ruby-version: 3.0
       - name: Install dependencies
         run: bundle install
         env:
@@ -101,3 +31,11 @@ jobs:
           DEBUG: true
       - name: Run tests
         run: bundle exec rake
+  lint:
+    runs-on: ubuntu-20.04
+    permissions:
+      checks: write
+      contents: write
+    steps:
+      - name: Standard Ruby
+        uses: standardrb/standard-ruby-action@v1

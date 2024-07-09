@@ -1,4 +1,4 @@
-require 'timeout'
+require "timeout"
 
 RSpec::Matchers.define :eventually do |expected_matcher|
   supports_block_expectations
@@ -8,16 +8,14 @@ RSpec::Matchers.define :eventually do |expected_matcher|
   end
 
   match do |actual|
-    begin
-      Timeout.timeout(@timeout_duration || 5) do
-        until expected_matcher.matches?(actual.call)
-          sleep 0.5
-        end
-        true
+    Timeout.timeout(@timeout_duration || 5) do
+      until expected_matcher.matches?(actual.call)
+        sleep 0.5
       end
-    rescue Timeout::Error
-      false
+      true
     end
+  rescue Timeout::Error
+    false
   end
 
   description do
