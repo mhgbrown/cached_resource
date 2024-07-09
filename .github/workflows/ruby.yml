@@ -5,28 +5,28 @@
 # This workflow will download a prebuilt Ruby version, install dependencies and run tests with Rake
 # For more information see: https://github.com/marketplace/actions/setup-ruby-jruby-and-truffleruby
 
-name: Code Coverage
-
-on: [push, workflow_dispatch, pull_request]
-
+name: Code Guard
+on:
+  pull_request:
+  workflow_dispatch:
+concurrency:
+  group: ${{ github.ref }}-${{ github.workflow }}
+  cancel-in-progress: true
 permissions:
-  contents: read
-
+  checks: write
+  contents: write
 jobs:
   test:
-    permissions:
-      checks: write
-      contents: write
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        rails-version: ["6.1", "7.1"]
+        rails-version: ['6.1', '7.1']
     steps:
       - uses: actions/checkout@v4
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 3.0
+          ruby-version: '3.0'
       - name: Install dependencies
         run: bundle install
         env:
@@ -34,11 +34,20 @@ jobs:
           DEBUG: true
       - name: Run tests
         run: bundle exec rake
-      - name: Code Coverage
-        uses: joshmfrankel/simplecov-check-action@main
-        with:
-          check_job_name: Code Coverage
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          minimum_suite_coverage: 100
-      - name: Lint
-        uses: standardrb/standard-ruby-action@v1
+      # Doesn't work. Needs secret or repo setting update
+      # - name: Code Coverage
+      #   if: matrix.rails-version == '7.1'
+      #   uses: joshmfrankel/simplecov-check-action@1.0.0
+      #   with:
+      #     check_job_name: Code Coverage
+      #     minimum_suite_coverage: 100
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+  # Doesn't work. Needs secret or repo setting update?
+  # lint:
+  #   needs: [test]
+  #   runs-on: ubuntu-20.04
+  #   steps:
+  #     - name: Lint
+  #       uses: standardrb/standard-ruby-action@v1
+  #       with:
+  #         ruby-version: '3.0'
