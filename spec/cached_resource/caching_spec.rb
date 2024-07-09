@@ -111,11 +111,7 @@ describe CachedResource do
           original_method.call(*args, &block)
         end
         result = Thing.find(5)
-        # sleep 1
-        # expect(Concurrent::Promise).to receive(:execute)
-        # Concurrent::Promise.execute
 
-        # read_from_cache("thing/5").should == nil
         loops = 0
         begin
           Timeout.timeout(5) do
