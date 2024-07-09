@@ -14,6 +14,9 @@ permissions:
 
 jobs:
   test:
+    permissions:
+      checks: write
+      contents: write
     runs-on: ubuntu-20.04
     strategy:
       matrix:
@@ -31,11 +34,11 @@ jobs:
           DEBUG: true
       - name: Run tests
         run: bundle exec rake
-  lint:
-    runs-on: ubuntu-20.04
-    permissions:
-      checks: write
-      contents: write
-    steps:
-      - name: Standard Ruby
+      - name: Code Coverage
+        uses: joshmfrankel/simplecov-check-action@main
+        with:
+          check_job_name: Code Coverage
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          minimum_suite_coverage: 100
+      - name: Lint
         uses: standardrb/standard-ruby-action@v1
