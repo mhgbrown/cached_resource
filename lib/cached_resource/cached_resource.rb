@@ -18,6 +18,7 @@ module CachedResource
         # and establishing the necessary methods.
         def setup_cached_resource!(options)
           @cached_resource = CachedResource::Configuration.new(options)
+          # puts "OK WE ARE SET UP!"
           if @cached_resource.concurrent_write
             @cached_resource.require_concurrent_ruby
             # begin

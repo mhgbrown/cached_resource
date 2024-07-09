@@ -12,6 +12,8 @@ module CachedResource
     # prefix for log messages
     LOGGER_PREFIX = "[cached_resource]"
 
+    attr_reader :concurrent_write
+
     # Initialize a Configuration with the given options, overriding any
     # defaults. The following options exist for cached resource:
     # :enabled, default: true
@@ -26,7 +28,7 @@ module CachedResource
     # :cache_collections, default: true
     # :concurrent_write, default: false
     def initialize(options={})
-      super({
+      data = {
         :cache => defined?(Rails.cache)  && Rails.cache || CACHE,
         :cache_collections => true,
         :cache_key_prefix => nil,
@@ -39,7 +41,12 @@ module CachedResource
         :ttl => 604800,
         :ttl_randomization => false,
         :ttl_randomization_scale => 1..2
-      }.merge(options))
+      }.merge(options)
+
+      # Set our concurrent_write. Can't override OpenStruct setters
+      # in a straightforward way.
+      @concurrent_write = data.delete :concurrent_write
+      super(data)
     end
 
     # Determine the time until a cache entry should expire.  If ttl_randomization
@@ -60,17 +67,15 @@ module CachedResource
     end
 
     def concurrent_write=(value)
-      super(value)
-
-      if value
-        self.require_concurrent_ruby
-      end
+      require_concurrent_ruby if value
+      @concurrent_write = value
+      puts "WE REQUIRED ID!\n", value
     end
 
+    # require concurrent/promise, throwing an exception if necessary
     def require_concurrent_ruby
       begin
-        # send :require, 'concurrent/promise'
-        require 'concurrent/promise'
+        send :require, 'concurrent/promise'
       rescue LoadError
         @cached_resource.logger.error(
           "`concurrent_write` option is enabled, but `concurrent-ruby` is not an installed dependency"
