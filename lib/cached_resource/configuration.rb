@@ -47,7 +47,8 @@ module CachedResource
 
       # Set our concurrent_write. Can't override OpenStruct setters
       # in a straightforward way.
-      @concurrent_write = data.delete :concurrent_write
+      # @concurrent_write = data.delete :concurrent_write
+      self.concurrent_write = data.delete :concurrent_write
       super(data)
     end
 
@@ -68,10 +69,11 @@ module CachedResource
       self.enabled = false
     end
 
+    # Toggle writing to cache in a thread. Requires
+    # concurrent/promise if enabled.
     def concurrent_write=(value)
       require_concurrent_ruby if value
       @concurrent_write = value
-      puts "WE REQUIRED ID!\n", value
     end
 
     # require concurrent/promise, throwing an exception if necessary
