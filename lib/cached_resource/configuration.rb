@@ -59,6 +59,25 @@ module CachedResource
       self.enabled = false
     end
 
+    def concurrent_write=(value)
+      super(value)
+
+      if value
+        self.require_concurrent_ruby
+      end
+    end
+
+    def require_concurrent_ruby
+      begin
+        send :require, 'concurrent/promise'
+      rescue LoadError
+        @cached_resource.logger.error(
+          "`concurrent_write` option is enabled, but `concurrent-ruby` is not an installed dependency"
+        )
+        raise
+      end
+    end
+
     private
 
     # Get a randomized ttl value between ttl * ttl_randomization_scale begin

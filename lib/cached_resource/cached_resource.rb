@@ -19,14 +19,15 @@ module CachedResource
         def setup_cached_resource!(options)
           @cached_resource = CachedResource::Configuration.new(options)
           if @cached_resource.concurrent_write
-            begin
-              send :require, 'concurrent/promise'
-            rescue LoadError
-              @cached_resource.logger.error(
-                "`concurrent_write` option is enabled, but `concurrent-ruby` is not an installed dependency"
-              )
-              raise
-            end
+            @cached_resource.require_concurrent_ruby
+            # begin
+            #   send :require, 'concurrent/promise'
+            # rescue LoadError
+            #   @cached_resource.logger.error(
+            #     "`concurrent_write` option is enabled, but `concurrent-ruby` is not an installed dependency"
+            #   )
+            #   raise
+            # end
           end
           send :include, CachedResource::Caching
           @cached_resource
