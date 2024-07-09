@@ -107,7 +107,14 @@ describe CachedResource do
 
       it "should cache a response asynchronusly when on" do
         Thing.cached_resource.concurrent_write = true
+        expect(Concurrent::Promise).to receive(:execute).and_wrap_original do |original_method, *args, &block|
+          original_method.call(*args, &block)
+        end
         result = Thing.find(5)
+        # sleep 1
+        # expect(Concurrent::Promise).to receive(:execute)
+        # Concurrent::Promise.execute
+
         read_from_cache("thing/5").should == nil
         loops = 0
         begin

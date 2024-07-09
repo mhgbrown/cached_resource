@@ -12,6 +12,8 @@ module CachedResource
     # prefix for log messages
     LOGGER_PREFIX = "[cached_resource]"
 
+    # "Internal" variable to represent enabling concurrency
+    # so that we know when its value changes.
     attr_reader :concurrent_write
 
     # Initialize a Configuration with the given options, overriding any
