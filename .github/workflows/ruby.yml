@@ -20,13 +20,14 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        rails-version: ['6.1', '7.1']
+        ruby-version: ['3.1', '3.2', '3.3']
+        rails-version: ['6.1', '7.0', '7.1']
     steps:
       - uses: actions/checkout@v4
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.0'
+          ruby-version: ${{ matrix.ruby-version }}
       - name: Install dependencies
         run: bundle install
         env:
@@ -34,20 +35,3 @@ jobs:
           DEBUG: true
       - name: Run tests
         run: bundle exec rake
-      # Doesn't work. Needs secret or repo setting update
-      # - name: Code Coverage
-      #   if: matrix.rails-version == '7.1'
-      #   uses: joshmfrankel/simplecov-check-action@1.0.0
-      #   with:
-      #     check_job_name: Code Coverage
-      #     minimum_suite_coverage: 100
-      #     github_token: ${{ secrets.GITHUB_TOKEN }}
-  # Doesn't work. Needs secret or repo setting update?
-  # lint:
-  #   needs: [test]
-  #   runs-on: ubuntu-20.04
-  #   steps:
-  #     - name: Lint
-  #       uses: standardrb/standard-ruby-action@v1
-  #       with:
-  #         ruby-version: '3.0'
