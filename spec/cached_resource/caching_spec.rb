@@ -264,14 +264,6 @@ describe CachedResource::Caching do
     end
 
     context "when cache prefix is set" do
-      before do
-        Thing.instance_variable_set(:@name_key, nil) # Remove memoization
-      end
-
-      after do
-        Thing.instance_variable_set(:@name_key, nil) # Remove memoization
-      end
-
       context "cache_key_prefix is a string" do
         before { allow(thing_cached_resource).to receive(:cache_key_prefix).and_return("prefix123") }
         it "caches with the cache_key_prefix" do

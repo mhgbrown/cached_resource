@@ -174,16 +174,14 @@ module CachedResource
       end
 
       def name_key
-        @name_key ||= begin
-          prefix = if cached_resource.cache_key_prefix.nil?
-            ""
-          elsif cached_resource.cache_key_prefix.respond_to?(:call)
-            cached_resource.cache_key_prefix.call
-          else
-            "#{cached_resource.cache_key_prefix}/"
-          end
-          prefix.to_s + name.parameterize.tr("-", "/")
+        prefix = if cached_resource.cache_key_prefix.nil?
+          ""
+        elsif cached_resource.cache_key_prefix.respond_to?(:call)
+          cached_resource.cache_key_prefix.call
+        else
+          "#{cached_resource.cache_key_prefix}/"
         end
+        prefix.to_s + name.parameterize.tr("-", "/")
       end
 
       # Make a full duplicate of an ActiveResource record.
