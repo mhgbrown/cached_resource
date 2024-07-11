@@ -64,9 +64,14 @@ cached_resource :cache => MyCacheStore.new, :ttl => 60, :collection_synchronize 
 ```ruby
   MyActiveResource.cached_resource.option = option_value
 ```
-For example, to turn CachedResource off
+
+Additionally a couple of helper methods are available:
+
 ```ruby
+  # Turn caching off
   MyActiveResource.cached_resource.off!
+  # Turn caching on
+  MyActiveResource.cached_resource.on!
 ```
 
 ### Caveats
