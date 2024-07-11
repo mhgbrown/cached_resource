@@ -131,7 +131,10 @@ docker run --rm -v  ${PWD}/coverage:/app/coverage cached_resource_test
 Coverage can be found found within `coverage/index.html` after every test run.
 
 ### Linter
-We unconfigurable linting rules from [Standard](https://github.com/standardrb/standard)
+We use unconfigurable linting rules from [Standard](https://github.com/standardrb/standard)
+
+To lint run: `bundle exec rake standard`
+To automatically apply linter fixes: `bundle exec rake standard:fix`
 
 
 ## Credit/Inspiration
