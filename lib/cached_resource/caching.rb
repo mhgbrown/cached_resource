@@ -147,10 +147,8 @@ module CachedResource
         result
       end
 
-      # Clear the cache.
       def cache_clear(options = nil)
-        # Memcache doesn't support delete_matched, which can also be computationally expensive
-        if (Object.const_defined?(:Dalli) && cached_resource.cache.instance_of?(ActiveSupport::Cache::MemCacheStore)) || options.try(:fetch, :all)
+        if !cached_resource.cache.respond_to?(:delete_matched) || options.try(:fetch, :all)
           cached_resource.cache.clear.tap do |result|
             cached_resource.logger.info("#{CachedResource::Configuration::LOGGER_PREFIX} CLEAR ALL")
           end

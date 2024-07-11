@@ -1,5 +1,7 @@
 require "spec_helper"
 
+CACHE = ActiveSupport::Cache::MemoryStore.new
+
 class Thing < ActiveResource::Base
   self.site = "http://api.thing.com"
   cached_resource
@@ -30,8 +32,44 @@ describe CachedResource::Caching do
   let(:not_the_thing) { {not_the_thing: {id: 1, name: "Not"}} }
   let(:not_the_thing_collection) { [{not_the_thing: {id: 1, name: "Not"}}] }
 
+  let(:thing_cached_resource) do
+    double(:thing_cached_resource,
+      cache_collections: true,
+      cache_key_prefix: nil,
+      cache: CACHE,
+      collection_arguments: [:all],
+      collection_synchronize: false,
+      concurrent_write: false,
+      enabled: true,
+      generate_ttl: 604800,
+      logger: double(:thing_logger, info: nil, error: nil),
+      race_condition_ttl: 86400,
+      ttl_randomization_scale: 1..2,
+      ttl_randomization: false,
+      ttl: 604800)
+  end
+
+  let(:not_the_thing_cached_resource) do
+    double(:not_the_thing_cached_resource,
+      cache_collections: true,
+      cache_key_prefix: nil,
+      cache: CACHE,
+      collection_arguments: [:all],
+      collection_synchronize: false,
+      concurrent_write: false,
+      enabled: true,
+      generate_ttl: 604800,
+      logger: double(:not_the_thing_logger, info: nil, error: nil),
+      race_condition_ttl: 86400,
+      ttl_randomization_scale: 1..2,
+      ttl_randomization: false,
+      ttl: 604800)
+  end
+
   before do
-    CachedResource::Configuration::CACHE.clear
+    CACHE.clear
+    allow(Thing).to receive(:cached_resource).and_return(thing_cached_resource)
+    allow(NotTheThing).to receive(:cached_resource).and_return(not_the_thing_cached_resource)
     ActiveResource::HttpMock.reset!
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get "/things/1.json", {}, thing.to_json
@@ -47,6 +85,11 @@ describe CachedResource::Caching do
   end
 
   context "when caching is enabled" do
+    before do
+      allow(thing_cached_resource).to receive(:enabled).and_return(true)
+      allow(not_the_thing_cached_resource).to receive(:enabled).and_return(true)
+    end
+
     context "Caching single resource" do
       it "caches a response" do
         result = Thing.find(1)
@@ -73,7 +116,7 @@ describe CachedResource::Caching do
         )
       end
 
-      it "empties all the cache when clear_cache is called on Thing with :all option set" do
+      it "empties all shared cache when clear_cache is called on Thing with :all option set" do
         Thing.find(1)
         NotTheThing.find(1)
         expect { Thing.clear_cache(all: true) }.to change { read_from_cache("thing/1") }.to(nil).and(
@@ -144,11 +187,7 @@ describe CachedResource::Caching do
 
     context "Caching collection is turned off" do
       before do
-        Thing.cached_resource.cache_collections = false
-      end
-
-      after do
-        Thing.cached_resource.cache_collections = true
+        allow(thing_cached_resource).to receive(:cache_collections).and_return(false)
       end
 
       it "always remakes a request" do
@@ -158,11 +197,7 @@ describe CachedResource::Caching do
 
       context "custom collection arguments" do
         before do
-          Thing.cached_resource.collection_arguments = [:all, params: {name: 42}]
-        end
-
-        after do
-          Thing.cached_resource.collection_arguments = [:all]
+          allow(thing_cached_resource).to receive(:collection_arguments).and_return([:all, params: {name: 42}])
         end
 
         it "checks for custom collection arguments" do
@@ -174,20 +209,20 @@ describe CachedResource::Caching do
 
     context "TTL" do
       let(:now) { Time.new(1999, 12, 31, 12, 0, 0) }
+      let(:travel_seconds) { 1000 }
 
       before do
         Timecop.freeze(now)
-        Thing.cached_resource.ttl = 1
+        allow(thing_cached_resource).to receive(:generate_ttl).and_return(travel_seconds)
       end
 
       after do
-        Thing.cached_resource.ttl = 604800
         Timecop.return
       end
 
       it "remakes the request when the ttl expires" do
         expect { Thing.find(1) }.to change { ActiveResource::HttpMock.requests.length }.from(0).to(1)
-        Timecop.travel(now + 2)
+        Timecop.travel(now + travel_seconds)
         expect { Thing.find(1) }.to change { ActiveResource::HttpMock.requests.length }.from(1).to(2)
       end
     end
@@ -197,11 +232,7 @@ describe CachedResource::Caching do
         ActiveResource::HttpMock.respond_to do |mock|
           mock.get "/things/5.json", {}, {thing: {id: 1, name: ("x" * 1_000_000)}}.to_json
         end
-        Thing.cached_resource.concurrent_write = true
-      end
-
-      after do
-        Thing.cached_resource.concurrent_write = false
+        allow(thing_cached_resource).to receive(:concurrent_write).and_return(true)
       end
 
       it "caches a response asynchronously when on" do
@@ -218,12 +249,12 @@ describe CachedResource::Caching do
       end
     end
 
-    context "when concurrency is turned on" do
+    context "when concurrency is turned off" do
       before do
         ActiveResource::HttpMock.respond_to do |mock|
           mock.get "/things/5.json", {}, {thing: {id: 1, name: ("x" * 1_000_000)}}.to_json
         end
-        Thing.cached_resource.concurrent_write = false
+        allow(thing_cached_resource).to receive(:concurrent_write).and_return(false)
       end
 
       it "caches a response synchronously when off" do
@@ -235,12 +266,11 @@ describe CachedResource::Caching do
     context "when cache prefix is set" do
       before do
         Thing.instance_variable_set(:@name_key, nil) # Remove memoization
-        Thing.cached_resource.cache_key_prefix = "prefix123"
+        allow(thing_cached_resource).to receive(:cache_key_prefix).and_return("prefix123")
       end
 
       after do
         Thing.instance_variable_set(:@name_key, nil) # Remove memoization
-        Thing.cached_resource.cache_key_prefix = nil
       end
 
       it "caches with the cache_key_prefix" do
@@ -268,8 +298,7 @@ describe CachedResource::Caching do
 
     context "cache_collection_synchronize" do
       before do
-        Thing.cached_resource.cache.clear
-        Thing.cached_resource.collection_synchronize = true
+        allow(thing_cached_resource).to receive(:collection_synchronize).and_return(true)
         ActiveResource::HttpMock.respond_to do |mock|
           mock.get "/things/1.json", {}, thing.to_json
           mock.get "/things.json", {}, [thing2[:thing], other_string_thing[:thing]].to_json
@@ -299,9 +328,9 @@ describe CachedResource::Caching do
   end
 
   context "when caching is disabled" do
-    before(:context) do
-      Thing.cached_resource.off!
-      NotTheThing.cached_resource.off!
+    before do
+      allow(thing_cached_resource).to receive(:enabled).and_return(false)
+      allow(not_the_thing_cached_resource).to receive(:enabled).and_return(false)
     end
 
     it "does not cache a response" do
@@ -320,7 +349,7 @@ describe CachedResource::Caching do
     end
   end
 
-  describe "#cache_key_delete_pattern" do
+  describe ".cache_key_delete_pattern" do
     let(:cache_class) { "Redis" }
 
     before do
@@ -335,7 +364,7 @@ describe CachedResource::Caching do
     end
 
     context "with cache ActiveSupport::Cache::FileStore" do
-      let(:cache_class) { ActiveSupport::Cache::FileStore.new('tmp/') }
+      let(:cache_class) { ActiveSupport::Cache::FileStore.new("tmp/") }
       it do
         expect(Thing.send(:cache_key_delete_pattern)).to eq(/^thing\//)
       end
@@ -344,6 +373,63 @@ describe CachedResource::Caching do
     context "default" do
       it do
         expect(Thing.send(:cache_key_delete_pattern)).to eq("thing/*")
+      end
+    end
+  end
+
+  describe ".clear_cache" do
+    context "when concurrent_write is false" do
+      it "clears the cache immediately" do
+        expect(thing_cached_resource.cache).to receive(:delete_matched)
+        expect(Thing.clear_cache).to be true
+        expect(thing_cached_resource.logger).to have_received(:info).with(/CLEAR/)
+      end
+    end
+
+    context "when concurrent_write is true" do
+      before do
+        allow(thing_cached_resource).to receive(:concurrent_write).and_return(true)
+      end
+
+      it "clears the cache asynchronously" do
+        promise = instance_double(Concurrent::Promise)
+        allow(Concurrent::Promise).to receive(:execute).and_return(promise)
+        expect(Concurrent::Promise).to receive(:execute)
+        Thing.clear_cache
+      end
+
+      it "logs the cache clear action" do
+        allow(Concurrent::Promise).to receive(:execute).and_yield
+        Thing.clear_cache
+        expect(thing_cached_resource.logger).to have_received(:info).with(/CLEAR/)
+      end
+    end
+
+    context "when options are provided" do
+      it "clears all cache if options[:all] is true" do
+        options = {all: true}
+        expect(thing_cached_resource.cache).to receive(:clear).and_call_original
+        Thing.clear_cache(options)
+      end
+
+      it "deletes matched cache keys if options[:all] is not provided" do
+        options = {all: false}
+        allow(thing_cached_resource.cache).to receive(:delete_matched)
+        Thing.clear_cache(options)
+        expect(thing_cached_resource.cache).to have_received(:delete_matched)
+      end
+    end
+
+    context 'when using a cache store that does not support "delete_matched"' do
+      before do
+        mem_cache_store = double(:cache_store_without_delete_matched, clear: nil)
+        allow(thing_cached_resource).to receive(:cache).and_return(mem_cache_store)
+      end
+
+      it "clears the cache if Dalli is defined" do
+        expect(thing_cached_resource.cache).to receive(:clear)
+        Thing.clear_cache
+        expect(thing_cached_resource.logger).to have_received(:info).with(/CLEAR ALL/)
       end
     end
   end

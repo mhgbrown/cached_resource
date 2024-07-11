@@ -21,11 +21,11 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "activesupport", ">= 4.0"
   s.add_runtime_dependency "nilio", ">= 1.0"
 
-  s.add_development_dependency "concurrent-ruby", "~> 1.2", ">= 1.2.3"
+  s.add_development_dependency "concurrent-ruby"
   s.add_development_dependency "pry-byebug"
   s.add_development_dependency "rake"
   s.add_development_dependency "rspec"
   s.add_development_dependency "simplecov", "~> 0.22.0"
-  s.add_development_dependency "timecop", "~> 0.9.10"
   s.add_development_dependency "standard", "~> 1.39", ">= 1.39.1"
+  s.add_development_dependency "timecop", "~> 0.9.10"
 end
