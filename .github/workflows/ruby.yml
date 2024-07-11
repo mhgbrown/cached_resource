@@ -13,8 +13,7 @@ concurrency:
   group: ${{ github.ref }}-${{ github.workflow }}
   cancel-in-progress: true
 permissions:
-  checks: write
-  contents: write
+  contents: read
 jobs:
   test:
     runs-on: ubuntu-20.04
