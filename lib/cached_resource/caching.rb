@@ -175,7 +175,13 @@ module CachedResource
 
       def name_key
         @name_key ||= begin
-          prefix = cached_resource.cache_key_prefix.nil? ? "" : "#{cached_resource.cache_key_prefix}/"
+          prefix = if cached_resource.cache_key_prefix.nil?
+            ""
+          elsif cached_resource.cache_key_prefix.respond_to?(:call)
+            cached_resource.cache_key_prefix.call
+          else
+            "#{cached_resource.cache_key_prefix}/"
+          end
           prefix + name.parameterize.tr("-", "/")
         end
       end

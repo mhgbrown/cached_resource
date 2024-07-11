@@ -266,16 +266,42 @@ describe CachedResource::Caching do
     context "when cache prefix is set" do
       before do
         Thing.instance_variable_set(:@name_key, nil) # Remove memoization
-        allow(thing_cached_resource).to receive(:cache_key_prefix).and_return("prefix123")
       end
 
       after do
         Thing.instance_variable_set(:@name_key, nil) # Remove memoization
       end
 
-      it "caches with the cache_key_prefix" do
-        result = Thing.find(1)
-        expect(read_from_cache("prefix123/thing/1")).to eq(result)
+      context "cache_key_prefix is a string" do
+        before { allow(thing_cached_resource).to receive(:cache_key_prefix).and_return("prefix123") }
+        it "caches with the cache_key_prefix" do
+          result = Thing.find(1)
+          expect(read_from_cache("prefix123/thing/1")).to eq(result)
+        end
+      end
+
+      context "cache_key_prefix is a callable" do
+        before do
+          # Gets called 3 times
+          allow(thing_cached_resource).to receive(:cache_key_prefix)
+            .and_return(
+              proc { "prefix123/" },
+              proc { "prefix123/" },
+              proc { "prefix123/" },
+              proc { "prefix456/" },
+              proc { "prefix456/" },
+              proc { "prefix456/" }
+            )
+        end
+
+        it "caches with the cache_key_prefix" do
+          result = Thing.find(1)
+          expect(read_from_cache("prefix123/thing/1")).to eq(result)
+          # Test for dynamicness
+          Thing.instance_variable_set(:@name_key, nil) # Remove memoization
+          result = Thing.find(1, reload: true)
+          expect(read_from_cache("prefix456/thing/1")).to eq(result)
+        end
       end
     end
 
