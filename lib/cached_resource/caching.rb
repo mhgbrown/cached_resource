@@ -182,7 +182,7 @@ module CachedResource
           else
             "#{cached_resource.cache_key_prefix}/"
           end
-          prefix + name.parameterize.tr("-", "/")
+          prefix.to_s + name.parameterize.tr("-", "/")
         end
       end
 

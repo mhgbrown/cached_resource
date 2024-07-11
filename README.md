@@ -107,45 +107,27 @@ Since resources are cached with an argument based key, you may pass in extra dat
 MyActiveResource.find(:one, from: "/admin/shop.json", uid: "unique value")
 ```
 
-## Testing
+## Contribution
+### Testing
+#### Locally
+You can set `TEST_RAILS_VERSION` to a value of the supported Rails versions in the [Compatability Matrix](#compatibility), or bundler will automatically select a version.
 
-To test the Ruby + Rails combination configured by default:
+Examples:
+- `TEST_RAILS_VERSION=7.1 bundle exec rspec # runs test suite + linter`
+- `bundle exec rspec # Runs test suite`
 
-```bash
-$ rake
+#### With Docker
+```sh
+docker build -t cached_resource_test -f Dockerfile.test .
+docker run --rm -v  ${PWD}/coverage:/app/coverage cached_resource_test
 ```
 
-or to test all supported environments...you have to do a little more work...
+### Code Coverage
+Coverage can be found found within `coverage/index.html` after every test run.
 
-Switch your Ruby version to the desired version. This project's maintainer uses `asdf`, so switching to Ruby 3 looks like this:
+### Linter
+We unconfigurable linting rules from [Standard](https://github.com/standardrb/standard)
 
-```bash
-$ asdf local ruby 3.0.5
-```
-
-If you have a `Gemfile.lock`, delete it:
-
-```bash
-$ rm Gemfile.lock
-```
-
-Then reinstall your dependencies:
-
-```bash
-$ bundle install
-```
-
-and finally, run the tests:
-
-```bash
-$ rake
-```
-
-If you want to test with a specific Rails version, start over and install dependencies with `TEST_RAILS_VERSION` set:
-
-```bash
-$ TEST_RAILS_VERSION=6.1 bundle install
-```
 
 ## Credit/Inspiration
 * quamen and [this gist](http://gist.github.com/947734)

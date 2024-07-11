@@ -53,7 +53,7 @@ RSpec.describe CachedResource::Model do
       end
 
       it "requires concurrent/promise" do
-        expect { dummy_class.setup_cached_resource!(concurrent_write: true) }.not_to raise_error(LoadError)
+        expect { dummy_class.setup_cached_resource!(concurrent_write: true) }.not_to raise_error
       end
 
       context 'When "concurrent/promise" is not installed' do

@@ -6,3 +6,4 @@ pkg/*
 .ruby-version
 .tool-versions
 coverage
+.standard_todo.yml
