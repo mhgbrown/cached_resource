@@ -118,13 +118,19 @@ MyActiveResource.find(:one, from: "/admin/shop.json", uid: "unique value")
 You can set `TEST_RAILS_VERSION` to a value of the supported Rails versions in the [Compatability Matrix](#compatibility), or bundler will automatically select a version.
 
 Examples:
-- `TEST_RAILS_VERSION=7.1 bundle exec rspec # runs test suite + linter`
-- `bundle exec rspec # Runs test suite`
+```sh
+TEST_RAILS_VERSION=7.1 bundle exec rspec # runs test suite + linter
+bundle exec rspec                        # Runs test suite
+```
 
 #### With Docker
 ```sh
 docker build -t cached_resource_test -f Dockerfile.test .
 docker run --rm -v  ${PWD}/coverage:/app/coverage cached_resource_test
+
+# Coverage report can be found in coverage/index.html
+# RSpec reports can be found in coverage/spec_results/${ruby-version}-${rails-version}.index.html
+# Linter reports can be found in coverage/linter-results.index.html
 ```
 
 ### Code Coverage

@@ -11,8 +11,8 @@ Gem::Specification.new do |s|
   s.description = "Enables request-based caching for ActiveResource"
   s.licenses = ["MIT"]
 
-  s.files = `git ls-files`.split("\n")
-  s.executables = `git ls-files -- bin/*`.split("\n").map { |f| File.basename(f) }
+  s.files = Dir.glob("lib/**/*") + Dir.glob("bin/**/*")
+  s.executables = Dir.glob("bin/*").map { |f| File.basename(f) }
   s.require_paths = ["lib"]
 
   s.required_ruby_version = ">= 3.0"
