@@ -39,7 +39,6 @@ describe CachedResource::Caching do
       cache: CACHE,
       collection_arguments: [:all],
       collection_synchronize: false,
-      concurrent_write: false,
       enabled: true,
       generate_ttl: 604800,
       logger: double(:thing_logger, info: nil, error: nil),
@@ -56,7 +55,6 @@ describe CachedResource::Caching do
       cache: CACHE,
       collection_arguments: [:all],
       collection_synchronize: false,
-      concurrent_write: false,
       enabled: true,
       generate_ttl: 604800,
       logger: double(:not_the_thing_logger, info: nil, error: nil),
@@ -227,42 +225,6 @@ describe CachedResource::Caching do
       end
     end
 
-    context "when concurrency is turned on" do
-      before do
-        ActiveResource::HttpMock.respond_to do |mock|
-          mock.get "/things/5.json", {}, {thing: {id: 1, name: ("x" * 1_000_000)}}.to_json
-        end
-        allow(thing_cached_resource).to receive(:concurrent_write).and_return(true)
-      end
-
-      it "caches a response asynchronously when on" do
-        result = Thing.find(5)
-        expect(read_from_cache("thing/5")).to be_nil
-        expect { read_from_cache("thing/5") }.to eventually(eq(result))
-      end
-
-      it "clears cache concurrently" do
-        result = Thing.find(5)
-        expect { read_from_cache("thing/5") }.to eventually(eq(result))
-        expect { Thing.clear_cache }.to not_change { read_from_cache("thing/5") }
-        expect { read_from_cache("thing/5") }.to eventually(be_nil)
-      end
-    end
-
-    context "when concurrency is turned off" do
-      before do
-        ActiveResource::HttpMock.respond_to do |mock|
-          mock.get "/things/5.json", {}, {thing: {id: 1, name: ("x" * 1_000_000)}}.to_json
-        end
-        allow(thing_cached_resource).to receive(:concurrent_write).and_return(false)
-      end
-
-      it "caches a response synchronously when off" do
-        result = Thing.find(5)
-        expect(read_from_cache("thing/5")).to eq(result)
-      end
-    end
-
     context "when cache prefix is set" do
       context "cache_key_prefix is a string" do
         before { allow(thing_cached_resource).to receive(:cache_key_prefix).and_return("prefix123") }
@@ -386,31 +348,10 @@ describe CachedResource::Caching do
   end
 
   describe ".clear_cache" do
-    context "when concurrent_write is false" do
-      it "clears the cache immediately" do
-        expect(thing_cached_resource.cache).to receive(:delete_matched)
-        expect(Thing.clear_cache).to be true
-        expect(thing_cached_resource.logger).to have_received(:info).with(/CLEAR/)
-      end
-    end
-
-    context "when concurrent_write is true" do
-      before do
-        allow(thing_cached_resource).to receive(:concurrent_write).and_return(true)
-      end
-
-      it "clears the cache asynchronously" do
-        promise = instance_double(Concurrent::Promise)
-        allow(Concurrent::Promise).to receive(:execute).and_return(promise)
-        expect(Concurrent::Promise).to receive(:execute)
-        Thing.clear_cache
-      end
-
-      it "logs the cache clear action" do
-        allow(Concurrent::Promise).to receive(:execute).and_yield
-        Thing.clear_cache
-        expect(thing_cached_resource.logger).to have_received(:info).with(/CLEAR/)
-      end
+    it "clears the cache immediately" do
+      expect(thing_cached_resource.cache).to receive(:delete_matched)
+      expect(Thing.clear_cache).to be true
+      expect(thing_cached_resource.logger).to have_received(:info).with(/CLEAR/)
     end
 
     context "when options are provided" do

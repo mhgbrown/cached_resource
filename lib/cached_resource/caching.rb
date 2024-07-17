@@ -26,11 +26,7 @@ module CachedResource
 
       # Clear the cache.
       def clear_cache(options = nil)
-        if cached_resource.concurrent_write
-          Concurrent::Promise.execute { cache_clear(options) }
-        else
-          cache_clear(options)
-        end
+        cache_clear(options)
 
         true
       end
@@ -130,14 +126,6 @@ module CachedResource
 
       # Write an entry to the cache for the given key and value.
       def cache_write(key, object, *arguments)
-        if cached_resource.concurrent_write
-          Concurrent::Promise.execute { _cache_write(key, object, *arguments) } && true
-        else
-          _cache_write(key, object, *arguments)
-        end
-      end
-
-      def _cache_write(key, object, *arguments)
         options = arguments[1] || {}
         params = options[:params]
         prefix_options, query_options = split_options(params)

@@ -44,31 +44,6 @@ RSpec.describe CachedResource::Model do
       expect(dummy_class.instance_variable_get(:@cached_resource)).to be_a(CachedResource::Configuration)
       expect(CachedResource::Configuration).to have_received(:new).with(options)
     end
-
-    context "when concurrent_write is enabled" do
-      before do
-        allow(CachedResource::Configuration).to receive(:new).and_return(
-          double(concurrent_write: true, logger: logger)
-        )
-      end
-
-      it "requires concurrent/promise" do
-        expect { dummy_class.setup_cached_resource!(concurrent_write: true) }.not_to raise_error
-      end
-
-      context 'When "concurrent/promise" is not installed' do
-        before do
-          allow(dummy_class).to receive(:require).with("concurrent/promise").and_raise(LoadError)
-        end
-
-        it "requires concurrent/promise" do
-          expect(logger).to receive(:error).with(
-            "`concurrent_write` option is enabled, but `concurrent-ruby` is not an installed dependency"
-          ).once
-          expect { dummy_class.setup_cached_resource!(concurrent_write: true) }.to raise_error(LoadError)
-        end
-      end
-    end
   end
 
   describe ".inherited" do

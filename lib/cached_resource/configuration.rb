@@ -23,7 +23,6 @@ module CachedResource
     # :cache, default: Rails.cache or ActiveSupport::Cache::MemoryStore.new,
     # :logger, default: Rails.logger or ActiveSupport::Logger.new(NilIO.new),
     # :cache_collections, default: true
-    # :concurrent_write, default: false
     def initialize(options = {})
       super({
         cache: defined?(Rails.cache) && Rails.cache || CACHE,
@@ -31,7 +30,6 @@ module CachedResource
         cache_key_prefix: nil,
         collection_arguments: [:all],
         collection_synchronize: false,
-        concurrent_write: false,
         enabled: true,
         logger: defined?(Rails.logger) && Rails.logger || LOGGER,
         race_condition_ttl: 86400,
