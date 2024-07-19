@@ -1,6 +1,6 @@
 # CachedResource ![Tests](https://github.com/mhgbrown/cached_resource/actions/workflows/ruby.yml/badge.svg)
 
-CachedResource is a Ruby gem whose goal is to increase the performance of interacting with web services via ActiveResource by caching responses based on request parameters.  It can help reduce the lag created by making repeated requests across a network.
+CachedResource is a Ruby gem designed to enhance the performance of web service interactions through ActiveResource by caching responses based on request parameters. By reducing the need for repeated network requests, it minimizes latency and optimizes the efficiency of your application's data retrieval processes.
 
 ## Installation
 
@@ -12,25 +12,11 @@ gem install cached_resource
 
 CachedResource is designed to be framework agnostic, but will hook into Rails for caching and logging if available. CachedResource supports the following ActiveSupport/Rails (right) and Ruby (down) version combinations:
 
-| | 🛤️ 4.2 | 🛤️ 5.0 | 🛤️ 5.1 | 🛤️ 6.0 | 🛤️ 6.1 | 🛤️ 7.0 | 🛤️ 7.1 |
-|-------|-----|-----|-----|-----|-----|-----|-----|
-| 💎 2.3   | ✅   | ✅   | ✅   |     |     |     | |
-| 💎 2.4   | ✅   | ✅   | ✅   |     |     |     | |
-| 💎 2.5   | ✅   | ✅   | ✅   | ✅   | ✅   |     | |
-| 💎 2.6   |   ✅   |   ✅  |  ✅   |  ✅   |  ✅   | |
-| 💎 2.7   |     | ✅   | ✅   | ✅   | ✅   | ✅   |✅ |
-| 💎 3.0   |     |     |     | ✅   | ✅   | ✅   | ✅ |
-| 💎 3.1   |     |     |     | ✅   | ✅   | ✅   | ✅ |
-| 💎 3.2   |     |     |     | ✅   | ✅   | ✅   | ✅ |
-| 💎 3.3   |     |  ✅   | ✅    | ✅   | ✅   | ✅   | ✅ |
-
-## Limitations
-
-The following are limitations for ActiveResource/Rails versions
-
-| ActiveSupport Version |                             Limitation                                  |
-|---------------------- | ----------------------------------------------------------------------- |
-| 🛤️ 4.X                |  You cannot chain calls. Ie `Thing.where(fn: 'foo').where(ln: 'bar')`. <br> However, you can still access `original_params` and the `resource_class` and replicate it with <br>`call1 = Thing.where(fn: 'foo')`<br>`call1.resource_class.where(call1.original_params.merge(ln: 'bar'))`  |
+|          | 🛤️ 6.1 | 🛤️ 7.0 | 🛤️ 7.1 |
+|----------|:------:|:------:|:------:|
+| 💎 3.0   |   ✅   |   ✅   |   ✅   |
+| 💎 3.1   |   ✅   |   ✅   |   ✅   |
+| 💎 3.2   |   ✅   |   ✅   |   ✅   |
 
 ## Configuration
 
@@ -38,7 +24,7 @@ The following are limitations for ActiveResource/Rails versions
 
 ```ruby
 class ActiveResource::Base
-  cached_resource
+  cached_resource(options)
 end
 ```
 
@@ -46,81 +32,45 @@ Or set up CachedResource for a single class:
 
 ```ruby
 class MyActiveResource < ActiveResource::Base
-  cached_resource
+  cached_resource(options)
 end
 ```
 
 ### Options
-CachedResource accepts the following options:
+CachedResource accepts the following options as a hash:
 
-* `:enabled` Default: `true`
-* `:cache_collections` Set to false to always remake a request for collections. Default: `true`
-* `:cache` The cache store that CacheResource should use. Default: The `Rails.cache` if available, or an `ActiveSupport::Cache::MemoryStore`
-* `:collection_arguments` The arguments that identify the principal collection request. Default: `[:all]`
-* `:collection_synchronize` Use collections to generate cache entries for individuals.  Update the existing cached principal collection when retrieving subsets of the principal collection or individuals.  Default: `false`
-* `:concurrent_write` Set to true to make concurrent writes to cache after successful API response. Default: `false`
-    * Requires the [concurrent-ruby](https://rubygems.org/gems/concurrent-ruby) gem
-* `:logger` The logger to which CachedResource messages should be written. Default: The `Rails.logger` if available, or an `ActiveSupport::Logger`
-* `:race_condition_ttl` The race condition ttl, to prevent [dog pile effect](https://en.wikipedia.org/wiki/Cache_stampede) or [cache stampede](https://en.wikipedia.org/wiki/Cache_stampede). Default: 86400
-* `:ttl_randomization_scale` A Range from which a random value will be selected to scale the ttl. Default: `1..2`
-* `:ttl_randomization` Enable ttl randomization. Default: `false`
-* `:ttl` The time in seconds until the cache should expire. Default: `604800`
+| Option                     | Description                                                                                                                                                         | Default                                                                                                    |
+|----------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------|
+| `:enabled`                 | Enables or disables caching.                                                                                                                                        | `true`                                                                                                     |
+| `:cache_collections`       | Set to false to always remake a request for collections.                                                                                                            | `true`                                                                                                     |
+| `:cache`                   | The cache store that CacheResource should use.                                                                                                                      | The `Rails.cache` if available, or an `ActiveSupport::Cache::MemoryStore`                                  |
+| `:cache_key_prefix`        | A prefix to be added to the cache keys.                                                                                                                              | `nil`                                                                                                      |
+| `:collection_arguments`    | The arguments that identify the principal collection request.                                                                                                        | `[:all]`                                                                                                    |
+| `:collection_synchronize`  | Use collections to generate cache entries for individuals. Update the existing cached principal collection when retrieving subsets of the principal collection or individuals. | `false`                                                                                                    |
+| `:logger`                  | The logger to which CachedResource messages should be written.                                                                                                       | The `Rails.logger` if available, or an `ActiveSupport::Logger`                                             |
+| `:race_condition_ttl`      | The race condition ttl, to prevent [dog pile effect](https://en.wikipedia.org/wiki/Cache_stampede) or [cache stampede](https://en.wikipedia.org/wiki/Cache_stampede). | `86400`                                                                                                    |
+| `:ttl_randomization_scale` | A Range from which a random value will be selected to scale the ttl.                                                                                                | `1..2`                                                                                                     |
+| `:ttl_randomization`       | Enable ttl randomization.                                                                                                                                           | `false`                                                                                                    |
+| `:ttl`                     | The time in seconds until the cache should expire.                                                                                                                   | `604800`                                                                                                   |
 
-You can set them like this:
-
+For example:
 ```ruby
 cached_resource :cache => MyCacheStore.new, :ttl => 60, :collection_synchronize => true, :logger => MyLogger.new
 ```
 
-You can also change them on the fly.
-
-Turn CachedResource off.  This will cause all responses to be retrieved normally (i.e. via the network). All responses will still be cached.
+#### You can also change them dynamically. Simply:
 
 ```ruby
+  MyActiveResource.cached_resource.option = option_value
+```
+
+Additionally a couple of helper methods are available:
+
+```ruby
+  # Turn caching off
   MyActiveResource.cached_resource.off!
-```
-
-Turn CachedResource on.
-```ruby
-MyActiveResource.cached_resource.on!
-```
-
-Set the cache expiry time to 60 seconds.
-
-```ruby
-MyActiveResource.cached_resource.ttl = 60
-```
-
-Enable cache expiry time randomization, allowing it to fall randomly between 60 and 120 seconds.
-
-```ruby
-MyActiveResource.cached_resource.ttl_randomization = true
-```
-
-Change the cache expiry time randomization scale so that the cache expiry time falls randomly between 30 and 180 seconds.
-
-```ruby
-MyActiveResource.cached_resource.ttl_randomization_scale = 0.5..3
-```
-Enable collection synchronization.  This will cause a call to `MyActiveResource.all` to also create cache entries for each of its members.  So, for example, a later call to `MyActiveResource.find(1)` will be read from the cache instead of requested from the remote service.
-
-```ruby
-MyActiveResource.cached_resource.collection_synchronize = true
-```
-Change the arguments that identify the principal collection request.  If for some reason you are concerned with a collection that is retrieved at a "non-standard" URL, you may specify the Ruby arguments that produce that URL.  When `collection_synchronize` is `true`, the collection returned from a request that matches these arguments will be cached and later updated when one of its members or a subset is retrieved.
-
-```ruby
-MyActiveResource.cached_resource.collection_arguments = [:all, :params => {:name => "Bob"}]
-```
-Set a different logger.
-
-```ruby
-MyActiveResource.cached_resource.logger = MyLogger.new
-```
-Set a different cache store.
-
-```ruby
-MyActiveResource.cached_resource.cache = MyCacheStore.new
+  # Turn caching on
+  MyActiveResource.cached_resource.on!
 ```
 
 ### Caveats
@@ -134,7 +84,7 @@ end
 
 ```ruby
 class MyActiveResource < ActiveResource::Base
-  self.cached_resource = CachedResource::Configuration.new(:collection_synchronize => true)
+  self.cached_resource = CachedResource::Configuration.new(:collection_synchronize: true)
 end
 ```
 ## Usage
@@ -161,45 +111,36 @@ Since resources are cached with an argument based key, you may pass in extra dat
 MyActiveResource.find(:one, from: "/admin/shop.json", uid: "unique value")
 ```
 
-## Testing
+## Contribution
+### Testing
+#### Locally
+You can set `TEST_RAILS_VERSION` to a value of the supported Rails versions in the [Compatability Matrix](#compatibility), or bundler will automatically select a version.
 
-To test the Ruby + Rails combination configured by default:
-
-```bash
-$ rake
+Examples:
+```sh
+TEST_RAILS_VERSION=7.1 bundle exec rspec # runs test suite + linter
+bundle exec rspec                        # Runs test suite
 ```
 
-or to test all supported environments...you have to do a little more work...
+#### With Docker
+```sh
+docker build -t cached_resource_test -f Dockerfile.test .
+docker run --rm -v  ${PWD}/coverage:/app/coverage cached_resource_test
 
-Switch your Ruby version to the desired version. This project's maintainer uses `asdf`, so switching to Ruby 3 looks like this:
-
-```bash
-$ asdf local ruby 3.0.5
+# Coverage report can be found in coverage/index.html
+# RSpec reports can be found in coverage/spec_results/${ruby-version}-${rails-version}.index.html
+# Linter reports can be found in coverage/linter-results.index.html
 ```
 
-If you have a `Gemfile.lock`, delete it:
+### Code Coverage
+Coverage can be found found within `coverage/index.html` after every test run.
 
-```bash
-$ rm Gemfile.lock
-```
+### Linter
+We use unconfigurable linting rules from [Standard](https://github.com/standardrb/standard)
 
-Then reinstall your dependencies:
+To lint run: `bundle exec rake standard`
+To automatically apply linter fixes: `bundle exec rake standard:fix`
 
-```bash
-$ bundle install
-```
-
-and finally, run the tests:
-
-```bash
-$ rake
-```
-
-If you want to test with a specific Rails version, start over and install dependencies with `TEST_RAILS_VERSION` set:
-
-```bash
-$ TEST_RAILS_VERSION=6.1 bundle install
-```
 
 ## Credit/Inspiration
 * quamen and [this gist](http://gist.github.com/947734)

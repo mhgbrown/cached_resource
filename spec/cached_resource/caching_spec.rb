@@ -1,664 +1,385 @@
-require 'spec_helper'
+require "spec_helper"
 
-describe CachedResource do
+CACHE = ActiveSupport::Cache::MemoryStore.new
 
-  def read_from_cache(key)
-    Thing.send(:cache_read, key)
+class Thing < ActiveResource::Base
+  self.site = "http://api.thing.com"
+  cached_resource
+end
+
+class NotTheThing < ActiveResource::Base
+  self.site = "http://api.notthething.com"
+  cached_resource
+end
+
+def read_from_cache(key, model = Thing)
+  model.send(:cache_read, key)
+end
+
+describe CachedResource::Caching do
+  let(:thing) { {thing: {id: 1, name: "Ada"}} }
+  let(:thing_collection) { [{id: 1, name: "Ada"}, {id: 2, name: "Ada", major: "CS"}] }
+  let(:thing_collection2) { [{id: 2, name: "Ada", major: "CS"}] }
+  let(:other_thing) { {thing: {id: 1, name: "Ari"}} }
+  let(:thing2) { {thing: {id: 2, name: "Joe"}} }
+  let(:other_thing2) { {thing: {id: 2, name: "Jeb"}} }
+  let(:thing3) { {thing: {id: 3, name: "Stu"}} }
+  let(:string_thing) { {thing: {id: "fded", name: "Lev"}} }
+  let(:other_string_thing) { {thing: {id: "fded", name: "Lon"}} }
+  let(:date_thing) { {thing: {id: 4, created_at: DateTime.new(2020)}} }
+  let(:nil_thing) { nil.to_json }
+  let(:empty_array_thing) { [].to_json }
+  let(:not_the_thing) { {not_the_thing: {id: 1, name: "Not"}} }
+  let(:not_the_thing_collection) { [{not_the_thing: {id: 1, name: "Not"}}] }
+
+  let(:thing_cached_resource) do
+    double(:thing_cached_resource,
+      cache_collections: true,
+      cache_key_prefix: nil,
+      cache: CACHE,
+      collection_arguments: [:all],
+      collection_synchronize: false,
+      enabled: true,
+      generate_ttl: 604800,
+      logger: double(:thing_logger, info: nil, error: nil),
+      race_condition_ttl: 86400,
+      ttl_randomization_scale: 1..2,
+      ttl_randomization: false,
+      ttl: 604800)
   end
 
-  before(:each) do
-    class Thing < ActiveResource::Base
-      self.site = "http://api.thing.com"
-      cached_resource
-    end
-
-    class NotTheThing < ActiveResource::Base
-      self.site = "http://api.notthething.com"
-      cached_resource
-    end
-
-    @thing = {:thing => {:id => 1, :name => "Ada"}}
-    @thing_collection = [{:id => 1, :name => "Ada"}, {:id => 2, :name => "Ada", :major => 'CS'}]
-    @thing_collection2 = [{:id => 2, :name => "Ada", :major => 'CS'}]
-    @other_thing = {:thing => {:id => 1, :name => "Ari"}}
-    @thing2 = {:thing => {:id => 2, :name => "Joe"}}
-    @other_thing2 = {:thing => {:id => 2, :name => "Jeb"}}
-    @thing3 = {:thing => {:id => 3, :name => "Stu"}}
-    @string_thing = {:thing => {:id => "fded", :name => "Lev"}}
-    @other_string_thing = {:thing => {:id => "fded", :name => "Lon"}}
-    @date_thing = {:thing => {:id => 4, :created_at => DateTime.new(2020)}}
-    @thing_json = @thing.to_json
-    @other_thing_json = @other_thing.to_json
-    @string_thing_json = @string_thing.to_json
-    @other_string_thing_json = @other_string_thing.to_json
-    @date_thing_json = @date_thing.to_json
-    @nil_thing = nil.to_json
-    @empty_array_thing = [].to_json
-    @not_the_thing = {:not_the_thing => {:id => 1, :name => "Not"}}
-    @not_the_thing_json = @not_the_thing.to_json
+  let(:not_the_thing_cached_resource) do
+    double(:not_the_thing_cached_resource,
+      cache_collections: true,
+      cache_key_prefix: nil,
+      cache: CACHE,
+      collection_arguments: [:all],
+      collection_synchronize: false,
+      enabled: true,
+      generate_ttl: 604800,
+      logger: double(:not_the_thing_logger, info: nil, error: nil),
+      race_condition_ttl: 86400,
+      ttl_randomization_scale: 1..2,
+      ttl_randomization: false,
+      ttl: 604800)
   end
 
-  after(:each) do
-    Thing.cached_resource.cache.clear
-    Object.send(:remove_const, :Thing)
-    NotTheThing.cached_resource.cache.clear
-    Object.send(:remove_const, :NotTheThing)
+  before do
+    CACHE.clear
+    allow(Thing).to receive(:cached_resource).and_return(thing_cached_resource)
+    allow(NotTheThing).to receive(:cached_resource).and_return(not_the_thing_cached_resource)
+    ActiveResource::HttpMock.reset!
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get "/things/1.json", {}, thing.to_json
+      mock.get "/things/1.json?foo=bar", {}, thing.to_json
+      mock.get "/things/fded.json", {}, string_thing.to_json
+      mock.get "/things.json?name=42", {}, nil_thing, 404
+      mock.get "/things.json?name=43", {}, empty_array_thing
+      mock.get "/things/4.json", {}, date_thing.to_json
+      mock.get "/not_the_things/1.json", {}, not_the_thing.to_json
+      mock.get "/things.json", {}, thing_collection.to_json
+      mock.get "/not_the_things.json", {}, not_the_thing_collection.to_json
+    end
   end
 
-  describe "when enabled" do
-    before(:each) do
-      # it's on by default, but lets call the method
-      # to make sure it works
-      Thing.cached_resource.cache.clear
-      Thing.cached_resource.on!
-      NotTheThing.cached_resource.cache.clear
-      NotTheThing.cached_resource.on!
-
-      ActiveResource::HttpMock.reset!
-      ActiveResource::HttpMock.respond_to do |mock|
-        mock.get "/things/1.json", {}, @thing_json
-        mock.get "/things/1.json?foo=bar", {}, @thing_json
-        mock.get "/things/fded.json", {}, @string_thing_json
-        mock.get "/things.json?name=42", {}, @nil_thing, 404
-        mock.get "/things.json?name=43", {}, @empty_array_thing
-        mock.get "/things/4.json", {}, @date_thing_json
-        mock.get "/not_the_things/1.json", {}, @not_the_thing_json
-      end
+  context "when caching is enabled" do
+    before do
+      allow(thing_cached_resource).to receive(:enabled).and_return(true)
+      allow(not_the_thing_cached_resource).to receive(:enabled).and_return(true)
     end
 
-    shared_examples "caching" do
-      it "should cache a response" do
+    context "Caching single resource" do
+      it "caches a response" do
         result = Thing.find(1)
-        read_from_cache("thing/1").should == result
+        Thing.find(1)
+        expect(read_from_cache("thing/1")).to eq(result)
+        expect(ActiveResource::HttpMock.requests.length).to eq(1)
       end
 
-      it "shouldn't cache nil response" do
-        Thing.find(:all, :params => { :name => '42' })
-        read_from_cache("thing/all/name/42").should == nil
+      it "caches without whitespace in keys" do
+        result = Thing.find(1, from: "path", params: {foo: "bar"})
+        expect(read_from_cache('thing/1/{:from=>"path",:params=>{:foo=>"bar"}}')).to eq(result)
       end
 
-      it "shouldn't cache blank response" do
-        Thing.find(:all, :params => { :name => '43' })
-        read_from_cache("thing/all/name/43").should == nil
+      it "empties the cache when clear_cache is called" do
+        Thing.find(1)
+        expect { Thing.clear_cache }.to change { read_from_cache("thing/1") }.from(kind_of(Thing)).to(nil)
       end
-    end
 
-    include_examples "caching"
+      it "does not empty cache of other ActiveResource objects" do
+        Thing.find(1)
+        NotTheThing.find(1)
+        expect { Thing.clear_cache }.to change { read_from_cache("thing/1") }.from(kind_of(Thing)).to(nil).and(
+          not_change { read_from_cache("notthething/1", NotTheThing) }
+        )
+      end
 
-    # NOTE: Possibly flaky, but best easy/cheap way to test concurrency.
-    context 'when concurrency is turned on' do
-      before do
-        # it's on by default, but lets call the method
-        # to make sure it works
-        Thing.cached_resource.cache.clear
-        Thing.cached_resource.on!
-        NotTheThing.cached_resource.cache.clear
-        NotTheThing.cached_resource.on!
+      it "empties all shared cache when clear_cache is called on Thing with :all option set" do
+        Thing.find(1)
+        NotTheThing.find(1)
+        expect { Thing.clear_cache(all: true) }.to change { read_from_cache("thing/1") }.to(nil).and(
+          change { read_from_cache("notthething/1", NotTheThing) }.to(nil)
+        )
+      end
 
-        ActiveResource::HttpMock.reset!
+      it "caches a response with the same persistence" do
+        result1 = Thing.find(1)
+        expect(result1.persisted?).to be true
+        result2 = Thing.find(1)
+        expect(result2.persisted?).to eq(result1.persisted?)
+      end
+
+      it "remakes a request when reloaded" do
+        Thing.find(1)
+        expect { Thing.find(1, reload: true) }.to change(ActiveResource::HttpMock.requests, :length).from(1).to(2)
+      end
+
+      it "rewrites the cache when the request is reloaded" do
+        Thing.find(1)
+        old_result = read_from_cache("thing/1").dup
+
         ActiveResource::HttpMock.respond_to do |mock|
-          mock.get "/things/5.json", {}, {:thing => {:id => 1, :name => ("x" * 1_000_000) }}.to_json
-        end
-      end
-
-      after do
-        Thing.cached_resource.concurrent_write = false
-      end
-
-      it "should cache a response asynchronusly when on" do
-        Thing.cached_resource.concurrent_write = true
-        result = Thing.find(5)
-        read_from_cache("thing/5").should == nil
-        loops = 0
-        begin
-          Timeout.timeout(5) do
-            loop do
-              loops += 1
-              if read_from_cache("thing/5") == result
-                break
-              else
-                sleep 0.5
-              end
-            end
-          end
-        rescue Timeout::Error
-          RSpec::Expectations.fail_with("Concurrency failed: Cache was not populated within the expected time")
+          mock.get "/things/1.json", {}, other_thing.to_json
         end
 
-        loops.should > 0
-        read_from_cache("thing/5").should == result
+        expect { Thing.find(1, reload: true) }.to change { read_from_cache("thing/1").name }.from(old_result.name)
       end
 
-      it "will cache a response synchronously when off" do
-        Thing.cached_resource.concurrent_write = false
-        result = Thing.find(5)
-        read_from_cache("thing/5").should == result
+      it "does not return a frozen object on first request, or subsequent" do
+        result1 = Thing.find(1)
+        expect(result1).not_to be_frozen
+        expect(Thing.find(1)).not_to be_frozen
+        expect(result1).not_to be_frozen
       end
     end
 
-    context "When there is a cache prefix" do
+    context "Caching a collection" do
+      it "does not cache an empty array response" do
+        Thing.find(:all, params: {name: "43"})
+        expect(read_from_cache("thing/all/name/43")).to be_nil
+      end
+
+      it "does not cache a nil response" do
+        Thing.find(:all, params: {name: "42"})
+        expect(read_from_cache("thing/all/name/42")).to be_nil
+      end
+
+      it "empties the cache when clear_cache is called" do
+        Thing.all
+        expect { Thing.clear_cache }.to change { read_from_cache("thing/all") }.from(kind_of(Enumerable)).to(nil)
+      end
+
+      it "does not empty cache of other ActiveResource objects" do
+        Thing.all
+        NotTheThing.all
+        expect { Thing.clear_cache }.to change { read_from_cache("thing/all") }.from(kind_of(Enumerable)).to(nil).and(
+          not_change { read_from_cache("notthething/all", NotTheThing) }
+        )
+      end
+
+      it "remakes a request when reloaded" do
+        Thing.all
+        expect { Thing.all(reload: true) }.to change(ActiveResource::HttpMock.requests, :length).from(1).to(2)
+      end
+    end
+
+    context "Caching collection is turned off" do
       before do
-        Thing.cached_resource.cache_key_prefix = "prefix123"
+        allow(thing_cached_resource).to receive(:cache_collections).and_return(false)
+      end
+
+      it "always remakes a request" do
+        Thing.all
+        expect { Thing.all }.to change(ActiveResource::HttpMock.requests, :length).from(1).to(2)
+      end
+
+      context "custom collection arguments" do
+        before do
+          allow(thing_cached_resource).to receive(:collection_arguments).and_return([:all, params: {name: 42}])
+        end
+
+        it "checks for custom collection arguments" do
+          Thing.all
+          expect { Thing.find(:all, params: {name: 42}) }.to change(ActiveResource::HttpMock.requests, :length).from(1).to(2)
+        end
+      end
+    end
+
+    context "TTL" do
+      let(:now) { Time.new(1999, 12, 31, 12, 0, 0) }
+      let(:travel_seconds) { 1000 }
+
+      before do
+        Timecop.freeze(now)
+        allow(thing_cached_resource).to receive(:generate_ttl).and_return(travel_seconds)
       end
 
       after do
-        Thing.cached_resource.cache_key_prefix = nil
+        Timecop.return
       end
 
-      it "caches with the cache_key_prefix" do
-        result = Thing.find(1)
-        read_from_cache("prefix123/thing/1").should == result
+      it "remakes the request when the ttl expires" do
+        expect { Thing.find(1) }.to change { ActiveResource::HttpMock.requests.length }.from(0).to(1)
+        Timecop.travel(now + travel_seconds)
+        expect { Thing.find(1) }.to change { ActiveResource::HttpMock.requests.length }.from(1).to(2)
       end
     end
 
-    it "should cache a response for a string primary key" do
-      result = Thing.find("fded")
-      read_from_cache("thing/fded").should == result
-    end
-
-    it "should cache without whitespace in keys" do
-      result = Thing.find(1, :from => 'path', :params => { :foo => 'bar' })
-      read_from_cache('thing/1/{:from=>"path",:params=>{:foo=>"bar"}}').should == result
-    end
-
-    it "should empty the cache when clear_cache is called" do
-      result = Thing.find(1)
-      Thing.clear_cache
-      read_from_cache("thing/1").should == nil
-    end
-
-    it "should not empty the cache of NotTheThing when clear_cache is called on the Thing" do
-      result1 = Thing.find(1)
-      result2 = NotTheThing.find(1)
-      Thing.clear_cache
-      NotTheThing.send(:cache_read, 'notthething/1').should == result2
-    end
-
-    it "should empty all the cache when clear_cache is called on the Thing with :all option set" do
-      result1 = Thing.find(1)
-      result2 = NotTheThing.find(1)
-      Thing.clear_cache(all: true)
-      NotTheThing.send(:cache_read, 'notthething/1').should == nil
-    end
-
-    it "should cache a response with the same persistence" do
-      result1 = Thing.find(1)
-      result1.persisted?.should be true
-      result2 = Thing.find(1)
-      result1.persisted?.should == result2.persisted?
-    end
-
-    it "should read a response when the request is made again" do
-      # make a request
-      Thing.find(1)
-      # make the same request
-      Thing.find(1)
-      # only one request should have happened
-      ActiveResource::HttpMock.requests.length.should == 1
-    end
-
-    it "should read a response when the request is made again for a string primary key" do
-      # make a request
-      Thing.find("fded")
-      # make the same request
-      Thing.find("fded")
-      # only one request should have happened
-      ActiveResource::HttpMock.requests.length.should == 1
-    end
-
-    it "should remake a request when reloaded" do
-      # make a request
-      Thing.find(1)
-      # make the same request, but reload it
-      Thing.find(1, :reload => true)
-      # we should get two requests
-      ActiveResource::HttpMock.requests.length.should == 2
-    end
-
-    it "should remake a request when reloaded for a string primary key" do
-      # make a request
-      Thing.find("fded")
-      # make the same request, but reload it
-      Thing.find("fded", :reload => true)
-      # we should get two requests
-      ActiveResource::HttpMock.requests.length.should == 2
-    end
-
-    it "should rewrite the cache when the request is reloaded" do
-      # make a request
-      Thing.find(1)
-      # get the cached result of the request
-      old_result = read_from_cache("thing/1")
-
-      # change the response
-      ActiveResource::HttpMock.reset!
-      ActiveResource::HttpMock.respond_to do |mock|
-        mock.get "/things/1.json", {}, @other_thing_json
+    context "when cache prefix is set" do
+      context "cache_key_prefix is a string" do
+        before { allow(thing_cached_resource).to receive(:cache_key_prefix).and_return("prefix123") }
+        it "caches with the cache_key_prefix" do
+          result = Thing.find(1)
+          expect(read_from_cache("prefix123/thing/1")).to eq(result)
+        end
       end
 
-      Thing.find(1, :reload => true)
-      new_result = read_from_cache("thing/1")
-      # since active resources are equal if and only if they
-      # are the same object or an instance of the same class,
-      # not new?, and have the same id.
-      new_result.name.should_not == old_result.name
+      context "cache_key_prefix is a callable" do
+        before do
+          allow(thing_cached_resource).to receive(:cache_key_prefix).and_return(proc { "prefix123" })
+        end
+
+        it "caches with the cache_key_prefix" do
+          result = Thing.find(1)
+          expect(read_from_cache("prefix123/thing/1")).to eq(result)
+          allow(thing_cached_resource).to receive(:cache_key_prefix).and_return(proc { "prefix456" })
+          result = Thing.find(1, reload: true)
+          expect(read_from_cache("prefix456/thing/1")).to eq(result)
+        end
+      end
     end
 
-    it "should remake the request when the ttl expires" do
-      # set cache time to live to 1 second
-      Thing.cached_resource.ttl = 1
-      # make a request
-      Thing.find(1)
-      # wait for the cache to expire
-      sleep(1.5)
-      # make the same request
-      Thing.find(1)
-      ActiveResource::HttpMock.requests.length.should == 2
-    end
-
-    it "should not return a frozen object on first request" do
-      result1 = Thing.find(1)
-      result1.should_not be_frozen
-    end
-
-    it "should not return frozen object on a subsequent request" do
-      result1 = Thing.find(1)
-      result2 = Thing.find(1)
-      result2.should_not be_frozen
-    end
-
-    it "should not freeze first requested object on a subsequent request" do
-      result1 = Thing.find(1)
-      result2 = Thing.find(1)
-      result1.should_not be_frozen
-    end
-
-    describe "when ActiveSupport.parse_json_times is enabled" do
+    context "when ActiveSupport.parse_json_times is enabled" do
       before(:all) do
-        Time.zone = 'UTC'
+        Time.zone = "UTC"
         ActiveSupport.parse_json_times = true
       end
 
-      it "should convert date times to objects when reading from cache" do
-        Thing.find(4)
+      after(:all) do
+        ActiveSupport.parse_json_times = false
+        Time.zone = nil
+      end
 
-        read_from_cache("thing/4").created_at.should == @date_thing[:thing][:created_at]
+      it "returns a time object when a time attribute is present in the response" do
+        result = Thing.find(4)
+        expect(result.created_at).to be_a(Time)
       end
     end
 
-    shared_examples "collection_return_type" do
-      if ActiveResource::VERSION::MAJOR >= 4
-        it "should return an ActiveResource::Collection" do
-          cached = read_from_cache("thing/all")
-          cached.should be_instance_of(ActiveResource::Collection)
-        end
-
-        it "should return a chainable instance of the collection_parser" do
-          Thing.cached_resource.cache.clear
-          class CustomCollection < ActiveResource::Collection; end
-          Thing.collection_parser = CustomCollection
-
-          ActiveResource::HttpMock.respond_to do |mock|
-            mock.get "/things.json?name=ada", {}, @thing_collection.to_json
-            mock.get "/things.json?major=CS&name=ada", {}, @thing_collection2.to_json
-          end
-
-          non_cached = Thing.where(name: 'ada')
-          non_cached.original_params.should == { :name => 'ada' }
-          non_cached.map(&:id).should == @thing_collection.map { |h| h[:id]}
-
-          cached = read_from_cache('thing/all/{:params=>{:name=>"ada"}}')
-          cached.should be_instance_of(CustomCollection)
-          cached.original_params.should == { :name => 'ada' }
-          cached.resource_class.should == Thing
-          cached.map(&:id).should == @thing_collection.map { |h| h[:id]}
-
-          if ActiveResource::VERSION::MAJOR < 5
-            non_cached = cached.resource_class.where(cached.original_params.merge(major: 'CS'))
-          else
-            non_cached = cached.where(major: 'CS')
-          end
-
-          non_cached.original_params.should == { :name => 'ada', :major => 'CS' }
-          non_cached.resource_class.should == Thing
-          non_cached.map(&:id).should == @thing_collection2.map { |h| h[:id]}
-          cached = read_from_cache('thing/all/{:params=>{:name=>"ada",:major=>"cs"}}')
-          cached.original_params.should == { :name => 'ada', :major => 'CS' }
-          cached.resource_class.should == Thing
-          cached.map(&:id).should == @thing_collection2.map { |h| h[:id]}
-        end
-      else
-        it "should return an Array" do
-          cached = read_from_cache("thing/all")
-          cached.should be_instance_of(Array)
-        end
-      end
-    end
-
-    shared_examples "collection_freezing" do
-      it "should not return a frozen collection on first request" do
-        Thing.cached_resource.cache.clear
-        collection1 = Thing.all
-        collection1.should_not be_frozen
-      end
-
-      it "should not return a frozen collection on a subsequent request" do
-        Thing.cached_resource.cache.clear
-        collection1 = Thing.all
-        collection2 = Thing.all
-        collection2.should_not be_frozen
-      end
-
-      it "should not freeze first requested collection on a subsequent request" do
-        Thing.cached_resource.cache.clear
-        result1 = Thing.all
-        result2 = Thing.all
-        result1.should_not be_frozen
-      end
-
-      it "should not return frozen members on first request" do
-        Thing.cached_resource.cache.clear
-        collection1 = Thing.all
-        collection1.first.should_not be_frozen
-      end
-
-      it "should not return frozen members on a subsequent request" do
-        Thing.cached_resource.cache.clear
-        collection1 = Thing.all
-        collection2 = Thing.all
-        collection2.first.should_not be_frozen
-      end
-
-      it "should not freeze members on a subsequent request" do
-        Thing.cached_resource.cache.clear
-        collection1 = Thing.all
-        member1 = Thing.find(1)
-        collection1.first.should_not be_frozen
-      end
-
-    end
-
-    shared_examples "collection_cache_clearing" do
-      it "should empty the cache when clear_cache is called" do
-        Thing.clear_cache
-        read_from_cache("thing/all").should == nil
-        read_from_cache("thing/1").should == nil
-      end
-
-    end
-
-    describe "when collection synchronize is enabled" do
-      before(:each) do
-        Thing.cached_resource.cache.clear
-        Thing.cached_resource.collection_synchronize = true
-
-        ActiveResource::HttpMock.reset!
+    context "cache_collection_synchronize" do
+      before do
+        allow(thing_cached_resource).to receive(:collection_synchronize).and_return(true)
         ActiveResource::HttpMock.respond_to do |mock|
-          mock.get "/things/1.json", {}, @thing_json
-          mock.get "/things/fded.json", {}, @string_thing_json
-          mock.get "/things.json", {}, [@thing[:thing], @string_thing[:thing]].to_json(:root => :thing)
+          mock.get "/things/1.json", {}, thing.to_json
+          mock.get "/things.json", {}, [thing2[:thing], other_string_thing[:thing]].to_json
         end
-
-        # make a request for all things
-        Thing.all
       end
-
-      include_examples "collection_return_type"
-
-      include_examples "collection_freezing"
-
-      it "should write cache entries for its members" do
-        result = Thing.find(1)
-        string_result = Thing.find("fded")
-        # only the all request should have been made
-        ActiveResource::HttpMock.requests.length.should == 1
-        # the result should be cached with the appropriate key
-        read_from_cache("thing/1").should == result
-        read_from_cache("thing/fded").should == string_result
-      end
-
-      include_examples "collection_cache_clearing"
 
       it "should rewrite cache entries for its members when reloaded" do
-        # get the soon to be stale result so that we have a cache entry
-        old_result = Thing.find(1)
-        old_string_result = Thing.find("fded")
-        # change the server
+        old_results = Thing.all(reload: true)
+        # Update response
         ActiveResource::HttpMock.respond_to do |mock|
-          mock.get "/things/1.json", {}, @other_thing_json
-          mock.get "/things/fded.json", {}, @other_string_thing_json
-          mock.get "/things.json", {}, [@other_thing[:thing], @other_string_thing[:thing]].to_json(:root => :thing)
-        end
-        # reload the collection
-        Thing.all(:reload => true)
-        # get the updated result, read from the cache
-        result = Thing.find(1)
-        read_from_cache("thing/all")[0].should == result
-        read_from_cache("thing/all")[0].name.should == result.name
-        string_result = Thing.find("fded")
-        read_from_cache("thing/all")[1].should == string_result
-        read_from_cache("thing/all")[1].name.should == string_result.name
-      end
-
-      it "should update the collection when an individual request is reloaded" do
-        # change the server
-        ActiveResource::HttpMock.respond_to do |mock|
-          mock.get "/things/1.json", {}, @other_thing_json
-          mock.get "/things/fded.json", {}, @other_string_thing_json
-          mock.get "/things.json", {}, [@other_thing[:thing], @other_string_thing[:thing]].to_json(:root => :thing)
+          mock.get "/things/1.json", {}, other_thing.to_json
         end
 
-        # reload the individual
-        result = Thing.find(1, :reload => true)
-        read_from_cache("thing/all")[0].should == result
-        read_from_cache("thing/all")[0].name.should == result.name
-        string_result = Thing.find("fded", :reload => true)
-        read_from_cache("thing/all")[1].should == string_result
-        read_from_cache("thing/all")[1].name.should == string_result.name
-      end
+        new_result = Thing.find(1, reload: true)
 
-      it "should update both the collection and the member cache entries when a subset of the collection is retrieved" do
-        # create cache entries for 1 and all
-        old_individual = Thing.find(1)
-        old_collection = Thing.all
-
-        # change the server
-        ActiveResource::HttpMock.respond_to do |mock|
-          mock.get "/things.json?name=Ari", {}, [@other_thing[:thing]].to_json(:root => :thing)
-          mock.get "/things.json?name=Lon", {}, [@other_string_thing[:thing]].to_json(:root => :thing)
-        end
-
-        # make a request for a subset of the "mother" collection
-        result = Thing.find(:all, :params => {:name => "Ari"})
-        # the collection should be updated to reflect the server change
-        read_from_cache("thing/all")[0].should == result[0]
-        read_from_cache("thing/all")[0].name.should == result[0].name
-        # the individual should be updated to reflect the server change
-        read_from_cache("thing/1").should == result[0]
-        read_from_cache("thing/1").name.should == result[0].name
-
-        # make a request for a subset of the "mother" collection
-        result = Thing.find(:all, :params => {:name => "Lon"})
-        # the collection should be updated to reflect the server change
-        read_from_cache("thing/all")[1].should == result[0]
-        read_from_cache("thing/all")[1].name.should == result[0].name
-        # the individual should be updated to reflect the server change
-        read_from_cache("thing/fded").should == result[0]
-        read_from_cache("thing/fded").name.should == result[0].name
-      end
-
-      it "should maintain the order of the collection when updating it" do
-        # change the server to return a longer collection
-        ActiveResource::HttpMock.respond_to do |mock|
-          mock.get "/things.json", {}, [@thing[:thing], @thing3[:thing], @thing2[:thing], @string_thing[:thing]].to_json(:root => :thing)
-        end
-
-        # create cache entry for the collection (we reload because in before block we make an all request)
-        old_collection = Thing.all(:reload => true)
-
-        # change the server's response for the thing with id 2
-        ActiveResource::HttpMock.respond_to do |mock|
-          mock.get "/things/2.json", {}, @other_thing2.to_json(:root => :thing)
-          mock.get "/things/fded.json", {}, @other_string_thing.to_json(:root => :thing)
-        end
-
-        # get thing 2, thereby updating the collection
-        result = Thing.find(2, :reload => true)
-        # get the updated collection from the cache
-        updated_collection = Thing.all
-        # name should have changed to "Jeb"
-        updated_collection[2].name.should == result.name
-        # the updated collection should have the elements in the same order
-        old_collection.each_with_index do |thing, i|
-          updated_collection[i].id.should == thing.id
-        end
-
-        # get string thing, thereby updating the collection
-        string_result = Thing.find("fded", :reload => true)
-        # get the updated collection from the cache
-        updated_collection = Thing.all
-        # name should have changed to "Lon"
-        updated_collection[3].name.should == string_result.name
-        # the updated collection should have the elements in the same order
-        old_collection.each_with_index do |thing, i|
-          updated_collection[i].id.should == thing.id
-        end
+        expect(old_results).not_to include(new_result)
+        expect(read_from_cache("thing/all")).to include(new_result)
       end
     end
 
-    describe "when collection synchronize is disabled" do
-      before(:each) do
-        Thing.cached_resource.cache.clear
-        Thing.cached_resource.collection_synchronize = false
-
-        ActiveResource::HttpMock.reset!
-        ActiveResource::HttpMock.respond_to do |mock|
-          mock.get "/things/1.json", {}, @thing_json
-          mock.get "/things/fded.json", {}, @string_thing_json
-          mock.get "/things.json", {}, [@thing[:thing], @string_thing[:thing]].to_json(:root => :thing)
-        end
-
-        # make a request for all things
-        Thing.all
-      end
-
-      include_examples "collection_return_type"
-
-      include_examples "collection_freezing"
-
-      it "should not write cache entries for its members" do
-        result = Thing.find(1)
-        result = Thing.find("fded")
-        # both the all in the before each and this request should have been made
-        ActiveResource::HttpMock.requests.length.should == 3
-      end
-
-      include_examples "collection_cache_clearing"
-
-      it "should not update the collection when an individual request is reloaded" do
-        # change the server
-        ActiveResource::HttpMock.respond_to do |mock|
-          mock.get "/things/1.json", {}, @other_thing_json
-          mock.get "/things/fded.json", {}, @other_string_thing_json
-          mock.get "/things.json", {}, [@other_thing[:thing], @other_string_thing[:thing]].to_json(:root => :thing)
-        end
-
-        # reload the individual
-        result = Thing.find(1, :reload => true)
-        # the ids are the same, but the names should be different
-        read_from_cache("thing/all")[0].name.should_not == result.name
-
-        # reload the individual
-        string_result = Thing.find("fded", :reload => true)
-        # the ids are the same, but the names should be different
-        read_from_cache("thing/all")[1].name.should_not == string_result.name
-      end
-    end
-
-    describe "when ttl randomization is enabled" do
-      before(:each) do
-        @ttl = 1
-        Thing.cached_resource.ttl = @ttl
-        Thing.cached_resource.ttl_randomization = true
-        Thing.cached_resource.send(:sample_range, 1..2, @ttl)
-        # next ttl 1.72032449344216
-      end
-
-      it "should generate a random ttl" do
-        Thing.cached_resource.cache.should_receive(:write)
-        Thing.cached_resource.cache.stub(:write) do |key, value, options|
-          # we know the ttl should not be the same as the set ttl
-          options[:expires_in].should_not == @ttl
-        end
-
+    context "Cache clearing" do
+      it "clears the cache" do
         Thing.find(1)
+        expect { Thing.clear_cache }.to change { read_from_cache("thing/1") }.to(nil)
       end
-
     end
   end
 
-  describe "when disabled" do
-    before(:each) do
-      Thing.cached_resource.cache.clear
-      Thing.cached_resource.off!
-
-      ActiveResource::HttpMock.reset!
-      ActiveResource::HttpMock.respond_to do |mock|
-        mock.get "/things/1.json", {}, @thing_json
-        mock.get "/things/fded.json", {}, @string_thing_json
-      end
+  context "when caching is disabled" do
+    before do
+      allow(thing_cached_resource).to receive(:enabled).and_return(false)
+      allow(not_the_thing_cached_resource).to receive(:enabled).and_return(false)
     end
 
-    it "should not cache a response" do
-      result = Thing.find(1)
-      read_from_cache("thing/1").should be_nil
-    end
-
-    it "should always remake the request" do
+    it "does not cache a response" do
       Thing.find(1)
-      ActiveResource::HttpMock.requests.length.should == 1
-      Thing.find(1)
-      ActiveResource::HttpMock.requests.length.should == 2
+      expect(read_from_cache("thing/1")).to be_nil
     end
 
-    it "should always remake the request for a string primary key" do
-      Thing.find("fded")
-      ActiveResource::HttpMock.requests.length.should == 1
-      Thing.find("fded")
-      ActiveResource::HttpMock.requests.length.should == 2
+    it "does not cache a nil response" do
+      Thing.find(:all, params: {name: "42"})
+      expect(read_from_cache("thing/all/name/42")).to be_nil
+    end
+
+    it "does not cache an empty array response" do
+      Thing.find(:all, params: {name: "43"})
+      expect(read_from_cache("thing/all/name/43")).to be_nil
     end
   end
 
-  describe "when cache_collections is disabled" do
-    before(:each) do
-      Thing.cached_resource.cache.clear
-      Thing.cached_resource.cache_collections = false
+  describe ".cache_key_delete_pattern" do
+    let(:cache_class) { "Redis" }
 
-      ActiveResource::HttpMock.reset!
-      ActiveResource::HttpMock.respond_to do |mock|
-        mock.get "/things.json", {}, [@thing[:thing],@string_thing[:thing]].to_json(:root => :thing)
-        mock.get "/things/1.json", {}, @thing_json
-        mock.get "/things/fded.json", {}, @string_thing_json
+    before do
+      allow(Thing.cached_resource).to receive(:cache).and_return(cache_class)
+    end
+
+    context "with cache ActiveSupport::Cache::MemoryStore" do
+      let(:cache_class) { ActiveSupport::Cache::MemoryStore.new }
+      it do
+        expect(Thing.send(:cache_key_delete_pattern)).to eq(/^thing\//)
       end
     end
 
-    it "should cache a response" do
-      result = Thing.find(1)
-      read_from_cache("thing/1").should == result
+    context "with cache ActiveSupport::Cache::FileStore" do
+      let(:cache_class) { ActiveSupport::Cache::FileStore.new("tmp/") }
+      it do
+        expect(Thing.send(:cache_key_delete_pattern)).to eq(/^thing\//)
+      end
     end
 
-    it "should not remake a single request" do
-      result = Thing.find(1)
-      ActiveResource::HttpMock.requests.length.should == 1
-      result = Thing.find(1)
-      ActiveResource::HttpMock.requests.length.should == 1
+    context "default" do
+      it do
+        expect(Thing.send(:cache_key_delete_pattern)).to eq("thing/*")
+      end
+    end
+  end
+
+  describe ".clear_cache" do
+    it "clears the cache immediately" do
+      expect(thing_cached_resource.cache).to receive(:delete_matched)
+      expect(Thing.clear_cache).to be true
+      expect(thing_cached_resource.logger).to have_received(:info).with(/CLEAR/)
     end
 
-    it "should always remake the request for collections" do
-      Thing.all
-      ActiveResource::HttpMock.requests.length.should == 1
-      Thing.all
-      ActiveResource::HttpMock.requests.length.should == 2
+    context "when options are provided" do
+      it "clears all cache if options[:all] is true" do
+        options = {all: true}
+        expect(thing_cached_resource.cache).to receive(:clear).and_call_original
+        Thing.clear_cache(options)
+      end
+
+      it "deletes matched cache keys if options[:all] is not provided" do
+        options = {all: false}
+        allow(thing_cached_resource.cache).to receive(:delete_matched)
+        Thing.clear_cache(options)
+        expect(thing_cached_resource.cache).to have_received(:delete_matched)
+      end
+    end
+
+    context 'when using a cache store that does not support "delete_matched"' do
+      before do
+        mem_cache_store = double(:cache_store_without_delete_matched, clear: nil)
+        allow(thing_cached_resource).to receive(:cache).and_return(mem_cache_store)
+      end
+
+      it "clears the cache if Dalli is defined" do
+        expect(thing_cached_resource.cache).to receive(:clear)
+        Thing.clear_cache
+        expect(thing_cached_resource.logger).to have_received(:info).with(/CLEAR ALL/)
+      end
     end
   end
 end

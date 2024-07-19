@@ -25,8 +25,10 @@ module CachedResource
       end
 
       # Clear the cache.
-      def clear_cache(options=nil)
+      def clear_cache(options = nil)
         cache_clear(options)
+
+        true
       end
 
       private
@@ -73,7 +75,9 @@ module CachedResource
         collection = cache_read(cache_key(cached_resource.collection_arguments))
 
         if collection && !updates.empty?
-          index = collection.inject({}) { |hash, object| hash[object.send(primary_key)] = object; hash }
+          index = collection.each_with_object({}) { |object, hash|
+            hash[object.send(primary_key)] = object
+          }
           updates.each { |object| index[object.send(primary_key)] = object }
           cache_write(cache_key(cached_resource.collection_arguments), index.values, *arguments)
         end
@@ -94,13 +98,12 @@ module CachedResource
       # Determine if the given arguments represent
       # any collection of objects
       def is_any_collection?(*arguments)
-        cached_resource.collection_arguments.all?{ |arg| arguments.include?(arg) } || arguments.include?(:all)
+        cached_resource.collection_arguments.all? { |arg| arguments.include?(arg) } || arguments.include?(:all)
       end
 
       # Read a entry from the cache for the given key.
       def cache_read(key)
         object = cached_resource.cache.read(key).try do |json_cache|
-
           json = ActiveSupport::JSON.decode(json_cache)
 
           unless json.nil?
@@ -110,7 +113,7 @@ module CachedResource
               next restored unless respond_to?(:collection_parser)
               collection_parser.new(restored).tap do |parser|
                 parser.resource_class = self
-                parser.original_params = json['original_params'].deep_symbolize_keys
+                parser.original_params = json["original_params"].deep_symbolize_keys
               end
             else
               full_dup(cache)
@@ -123,27 +126,17 @@ module CachedResource
 
       # Write an entry to the cache for the given key and value.
       def cache_write(key, object, *arguments)
-        if cached_resource.concurrent_write
-          Concurrent::Promise.execute { _cache_write(key, object, *arguments) } && true
-        else
-          _cache_write(key, object, *arguments)
-        end
-      end
-
-      def _cache_write(key, object, *arguments)
         options = arguments[1] || {}
         params = options[:params]
         prefix_options, query_options = split_options(params)
 
-        result = cached_resource.cache.write(key, object_to_json(object, prefix_options, query_options), :race_condition_ttl => cached_resource.race_condition_ttl, :expires_in => cached_resource.generate_ttl)
+        result = cached_resource.cache.write(key, object_to_json(object, prefix_options, query_options), race_condition_ttl: cached_resource.race_condition_ttl, expires_in: cached_resource.generate_ttl)
         result && cached_resource.logger.info("#{CachedResource::Configuration::LOGGER_PREFIX} WRITE #{key}")
         result
       end
 
-      # Clear the cache.
-      def cache_clear(options=nil)
-        # Memcache doesn't support delete_matched, which can also be computationally expensive
-        if cached_resource.cache.class.to_s == 'ActiveSupport::Cache::MemCacheStore' || options.try(:fetch,:all)
+      def cache_clear(options = nil)
+        if !cached_resource.cache.respond_to?(:delete_matched) || options.try(:fetch, :all)
           cached_resource.cache.clear.tap do |result|
             cached_resource.logger.info("#{CachedResource::Configuration::LOGGER_PREFIX} CLEAR ALL")
           end
@@ -155,8 +148,8 @@ module CachedResource
       end
 
       def cache_key_delete_pattern
-        case cached_resource.cache.class.to_s
-        when "ActiveSupport::Cache::MemoryStore", "ActiveSupport::Cache::FileStore"
+        case cached_resource.cache
+        when ActiveSupport::Cache::MemoryStore, ActiveSupport::Cache::FileStore
           /^#{name_key}\//
         else
           "#{name_key}/*"
@@ -165,13 +158,22 @@ module CachedResource
 
       # Generate the request cache key.
       def cache_key(*arguments)
-        "#{name_key}/#{arguments.join('/')}".downcase.delete(' ')
+        "#{name_key}/#{arguments.join("/")}".downcase.delete(" ")
       end
 
       def name_key
-        @name_key ||= begin
-          prefix = cached_resource.cache_key_prefix.nil? ? "" : "#{cached_resource.cache_key_prefix}/"
-          prefix + name.parameterize.gsub("-", "/")
+        cache_key_prefix + name.parameterize.tr("-", "/")
+      end
+
+      def cache_key_prefix
+        prefix = cached_resource.cache_key_prefix
+        return "" if prefix.nil?
+
+        if prefix.respond_to?(:call)
+          result = prefix.call
+          result.nil? ? "" : "#{result}/"
+        else
+          "#{prefix}/"
         end
       end
 
@@ -184,16 +186,16 @@ module CachedResource
       end
 
       def json_to_object(json)
-        resource = json['resource']
+        resource = json["resource"]
         if resource.is_a? Array
           resource.map do |attrs|
-            self.new(attrs["object"], attrs["persistence"]).tap do |resource|
-              resource.prefix_options = json['prefix_options']
+            new(attrs["object"], attrs["persistence"]).tap do |resource|
+              resource.prefix_options = json["prefix_options"]
             end
           end
         else
-          self.new(resource["object"], resource["persistence"]).tap do |resource|
-            resource.prefix_options = json['prefix_options']
+          new(resource["object"], resource["persistence"]).tap do |resource|
+            resource.prefix_options = json["prefix_options"]
           end
         end
       end
@@ -201,16 +203,14 @@ module CachedResource
       def object_to_json(object, prefix_options, query_options)
         if object.is_a? Enumerable
           {
-            :resource => object.map { |o| { :object => o, :persistence => o.persisted? } },
-            :prefix_options => prefix_options,
-            :original_params => query_options
+            resource: object.map { |o| {object: o, persistence: o.persisted?} },
+            prefix_options: prefix_options,
+            original_params: query_options
           }.to_json
-        elsif object.nil?
-          nil.to_json
         else
           {
-            :resource => { :object => object, :persistence => object.persisted? },
-            :prefix_options => prefix_options
+            resource: {object: object, persistence: object.persisted?},
+            prefix_options: prefix_options
           }.to_json
         end
       end
