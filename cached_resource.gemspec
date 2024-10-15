@@ -17,8 +17,8 @@ Gem::Specification.new do |s|
 
   s.required_ruby_version = ">= 3.0"
 
-  s.add_runtime_dependency "activeresource", ">= 4.0"
-  s.add_runtime_dependency "activesupport", ">= 4.0"
+  s.add_runtime_dependency "activeresource", ">= 6.1"
+  s.add_runtime_dependency "msgpack", "~> 1.7", ">= 1.7.3"
   s.add_runtime_dependency "nilio", ">= 1.0"
 
   s.add_development_dependency "concurrent-ruby"
