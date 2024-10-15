@@ -11,6 +11,9 @@ module CachedResource
     # prefix for log messages
     LOGGER_PREFIX = "[cached_resource]"
 
+    # Max key length
+    MAX_KEY_LENGTH = nil
+
     # Initialize a Configuration with the given options, overriding any
     # defaults. The following options exist for cached resource:
     # :enabled, default: true
@@ -32,10 +35,11 @@ module CachedResource
         collection_synchronize: false,
         enabled: true,
         logger: defined?(Rails.logger) && Rails.logger || LOGGER,
+        max_key_length: options.fetch(:max_key_length, MAX_KEY_LENGTH),
         race_condition_ttl: 86400,
-        ttl: 604800,
+        ttl_randomization_scale: 1..2,
         ttl_randomization: false,
-        ttl_randomization_scale: 1..2
+        ttl: 604800
       }.merge(options))
     end
 

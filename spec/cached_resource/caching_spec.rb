@@ -42,6 +42,7 @@ describe CachedResource::Caching do
       enabled: true,
       generate_ttl: 604800,
       logger: double(:thing_logger, info: nil, error: nil),
+      max_key_length: nil,
       race_condition_ttl: 86400,
       ttl_randomization_scale: 1..2,
       ttl_randomization: false,
@@ -58,6 +59,7 @@ describe CachedResource::Caching do
       enabled: true,
       generate_ttl: 604800,
       logger: double(:not_the_thing_logger, info: nil, error: nil),
+      max_key_length: nil,
       race_condition_ttl: 86400,
       ttl_randomization_scale: 1..2,
       ttl_randomization: false,
@@ -86,6 +88,26 @@ describe CachedResource::Caching do
     before do
       allow(thing_cached_resource).to receive(:enabled).and_return(true)
       allow(not_the_thing_cached_resource).to receive(:enabled).and_return(true)
+    end
+
+    context "When a `max_key_length` is set" do
+      before do
+        allow(thing_cached_resource).to receive(:max_key_length).and_return(10)
+      end
+
+      context "When key length is greater than `max_key_length`" do
+        it "caches a response with hashed key" do
+          result = Thing.find(1, from: "path", params: {foo: "bar"})
+          expect(read_from_cache(Digest::SHA256.hexdigest('thing/1/{:from=>"path",:params=>{:foo=>"bar"}}'))).to eq(result)
+        end
+      end
+
+      context "When key length is less than `max_key_length`" do
+        it "caches a response with unhashed key" do
+          result = Thing.find(1)
+          expect(read_from_cache("thing/1")).to eq(result)
+        end
+      end
     end
 
     context "Caching single resource" do
