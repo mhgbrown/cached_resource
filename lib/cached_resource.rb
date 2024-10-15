@@ -1,6 +1,7 @@
+require "msgpack"
+require "nilio"
 require "ostruct"
 
-require "nilio"
 require "active_support/cache"
 require "active_support/concern"
 require "active_support/logger"

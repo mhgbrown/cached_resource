@@ -56,6 +56,10 @@ describe CachedResource::Configuration do
       expect(configuration.ttl).to eq(604800)
     end
 
+    it "should have key length of Configuration::MAX_KEY_LENGTH" do
+      expect(configuration.max_key_length).to eq(CachedResource::Configuration::MAX_KEY_LENGTH)
+    end
+
     it "should disable collection synchronization" do
       expect(configuration.collection_synchronize).to eq(false)
     end
