@@ -1,4 +1,4 @@
-# CachedResource ![Tests](https://github.com/mhgbrown/cached_resource/actions/workflows/ruby.yml/badge.svg)
+# CachedResource ![Tests](https://github.com/mhgbrown/cached_resource/actions/workflows/ruby.yml/badge.svg) ![SVG](https://dev.w3.org/SVG/tools/svgweb/samples/svg-files/acid.svg)
 
 CachedResource is a Ruby gem designed to enhance the performance of web service interactions through ActiveResource by caching responses based on request parameters. By reducing the need for repeated network requests, it minimizes latency and optimizes the efficiency of your application's data retrieval processes.
 
