@@ -17,6 +17,7 @@ module CachedResource
         # Set up cached resource for this class by creating a new configuration
         # and establishing the necessary methods.
         def setup_cached_resource!(options)
+          require "msgpack" if options[:compress]
           @cached_resource = CachedResource::Configuration.new(options)
           send :include, CachedResource::Caching
           @cached_resource

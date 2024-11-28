@@ -18,10 +18,10 @@ Gem::Specification.new do |s|
   s.required_ruby_version = ">= 3.0"
 
   s.add_runtime_dependency "activeresource", ">= 6.1"
-  s.add_runtime_dependency "msgpack", "~> 1.7", ">= 1.7.3"
   s.add_runtime_dependency "nilio", ">= 1.0"
 
   s.add_development_dependency "concurrent-ruby"
+  s.add_development_dependency "msgpack", "~> 1.7", ">= 1.7.3"
   s.add_development_dependency "pry-byebug"
   s.add_development_dependency "rake"
   s.add_development_dependency "rspec"

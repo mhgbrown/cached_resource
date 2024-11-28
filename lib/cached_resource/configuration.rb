@@ -28,11 +28,12 @@ module CachedResource
     # :cache_collections, default: true
     def initialize(options = {})
       super({
-        cache: defined?(Rails.cache) && Rails.cache || CACHE,
         cache_collections: true,
         cache_key_prefix: nil,
+        cache: defined?(Rails.cache) && Rails.cache || CACHE,
         collection_arguments: [:all],
         collection_synchronize: false,
+        compress: false,
         enabled: true,
         logger: defined?(Rails.logger) && Rails.logger || LOGGER,
         max_key_length: options.fetch(:max_key_length, MAX_KEY_LENGTH),

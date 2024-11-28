@@ -39,14 +39,15 @@ describe CachedResource::Caching do
       cache: CACHE,
       collection_arguments: [:all],
       collection_synchronize: false,
+      compress: false,
       enabled: true,
-      generate_ttl: 604800,
+      generate_ttl: 604_800,
       logger: double(:thing_logger, info: nil, error: nil),
       max_key_length: nil,
-      race_condition_ttl: 86400,
+      race_condition_ttl: 86_400,
       ttl_randomization_scale: 1..2,
       ttl_randomization: false,
-      ttl: 604800)
+      ttl: 604_800)
   end
 
   let(:not_the_thing_cached_resource) do
@@ -56,14 +57,15 @@ describe CachedResource::Caching do
       cache: CACHE,
       collection_arguments: [:all],
       collection_synchronize: false,
+      compress: false,
       enabled: true,
-      generate_ttl: 604800,
+      generate_ttl: 604_800,
       logger: double(:not_the_thing_logger, info: nil, error: nil),
       max_key_length: nil,
-      race_condition_ttl: 86400,
+      race_condition_ttl: 86_400,
       ttl_randomization_scale: 1..2,
       ttl_randomization: false,
-      ttl: 604800)
+      ttl: 604_800)
   end
 
   before do
@@ -217,12 +219,14 @@ describe CachedResource::Caching do
 
       context "custom collection arguments" do
         before do
-          allow(thing_cached_resource).to receive(:collection_arguments).and_return([:all, params: {name: 42}])
+          allow(thing_cached_resource).to receive(:collection_arguments).and_return([:all, {params: {name: 42}}])
         end
 
         it "checks for custom collection arguments" do
           Thing.all
-          expect { Thing.find(:all, params: {name: 42}) }.to change(ActiveResource::HttpMock.requests, :length).from(1).to(2)
+          expect do
+            Thing.find(:all, params: {name: 42})
+          end.to change(ActiveResource::HttpMock.requests, :length).from(1).to(2)
         end
       end
     end
@@ -244,6 +248,21 @@ describe CachedResource::Caching do
         expect { Thing.find(1) }.to change { ActiveResource::HttpMock.requests.length }.from(0).to(1)
         Timecop.travel(now + travel_seconds)
         expect { Thing.find(1) }.to change { ActiveResource::HttpMock.requests.length }.from(1).to(2)
+      end
+    end
+
+    context "compress" do
+      before do
+        allow(thing_cached_resource).to receive(:compress).and_return(true)
+        allow(MessagePack).to receive(:pack).and_call_original
+        allow(MessagePack).to receive(:unpack).and_call_original
+      end
+
+      it "compresses the cache entry" do
+        result = Thing.find(1)
+        expect(read_from_cache("thing/1")).to eq(result)
+        expect(MessagePack).to have_received(:pack)
+        expect(MessagePack).to have_received(:unpack)
       end
     end
 
@@ -351,14 +370,14 @@ describe CachedResource::Caching do
     context "with cache ActiveSupport::Cache::MemoryStore" do
       let(:cache_class) { ActiveSupport::Cache::MemoryStore.new }
       it do
-        expect(Thing.send(:cache_key_delete_pattern)).to eq(/^thing\//)
+        expect(Thing.send(:cache_key_delete_pattern)).to eq(%r{^thing/})
       end
     end
 
     context "with cache ActiveSupport::Cache::FileStore" do
       let(:cache_class) { ActiveSupport::Cache::FileStore.new("tmp/") }
       it do
-        expect(Thing.send(:cache_key_delete_pattern)).to eq(/^thing\//)
+        expect(Thing.send(:cache_key_delete_pattern)).to eq(%r{^thing/})
       end
     end
 

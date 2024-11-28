@@ -104,7 +104,8 @@ module CachedResource
       # Read a entry from the cache for the given key.
       def cache_read(key)
         object = cached_resource.cache.read(key).try do |json_cache|
-          json = ActiveSupport::JSON.decode(MessagePack.unpack(json_cache))
+          json = cached_resource.compress ? MessagePack.unpack(json_cache) : json_cache
+          json = ActiveSupport::JSON.decode(json)
 
           unless json.nil?
             cache = json_to_object(json)
@@ -130,7 +131,8 @@ module CachedResource
         params = options[:params]
         prefix_options, query_options = split_options(params)
 
-        serialized_json = MessagePack.pack(object_to_json(object, prefix_options, query_options))
+        serialized_json = object_to_json(object, prefix_options, query_options)
+        serialized_json = MessagePack.pack(serialized_json) if cached_resource.compress
         result = cached_resource.cache.write(key, serialized_json, race_condition_ttl: cached_resource.race_condition_ttl, expires_in: cached_resource.generate_ttl)
         result && cached_resource.logger.info("#{CachedResource::Configuration::LOGGER_PREFIX} WRITE #{key}")
         result
